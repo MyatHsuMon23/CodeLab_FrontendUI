@@ -1,5 +1,4 @@
 import { setTokens, logout } from '@store/authReducer.js';
-import { useNavigate } from 'react-router-dom';
 
 export const fetchWithAuth = async (
     input: RequestInfo,
@@ -7,9 +6,9 @@ export const fetchWithAuth = async (
     dispatch: any,
     refreshTokenFlow: (refreshToken: string) => Promise<any>,
     accessToken: string,
-    refreshToken: string
+    refreshToken: string,
+    navigate: (path: string) => void
 ) => {
-    const navigate = useNavigate();
     if (!accessToken) {
         throw new Error('No access token available');
     }
@@ -26,7 +25,7 @@ export const fetchWithAuth = async (
         if (refreshToken) {
             const refreshResult = await refreshTokenFlow(refreshToken);
             if (refreshResult?.success && refreshResult.data?.access_token) {
-                var newAccessToken = refreshResult.data.access_token;
+                const newAccessToken = refreshResult.data.access_token;
                 dispatch(setTokens({
                     accessToken: refreshResult.data.access_token,
                     refreshToken: refreshResult.data.refresh_token,
