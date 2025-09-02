@@ -59,6 +59,11 @@ export interface WorkOrderHistoryResponse {
   message?: string;
 }
 
+export interface FlightDeleteResponse {
+  success: boolean;
+  message?: string;
+}
+
 // Form interfaces
 export interface FlightFormData {
   flightNumber: string;
