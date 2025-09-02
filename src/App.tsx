@@ -14,10 +14,12 @@ import Alert from '@component/Alert.js';
 import FTACheckDetail from '@page/FTACheckDetail.js';
 import DashboardLayout from '@layout/DashboardLayout.js';
 import Search from '@page/Search.js';
+import FlightList from '@page/FlightList.js';
+import WorkOrderHistory from '@page/WorkOrderHistory.js';
 import BackdropLoading from '@component/BackdropLoading';
 const App: React.FC = () => {
   const { isLoading, loadingDescription } = useSelector((state: any) => state.ui);
-  const isAuthenticated = useSelector((state: any) => !!state.auth?.auth?.accessToken);
+  const isAuthenticated = useSelector((state: any) => !!state.auth?.user?.accessToken);
   return (
     <AlertProvider>
       <Alert />
@@ -27,7 +29,7 @@ const App: React.FC = () => {
           {/* Redirect root "/" based on auth */}
           <Route
             path="/"
-            element={isAuthenticated ? <Navigate to="/create" /> : <Navigate to="/login" />}
+            element={isAuthenticated ? <Navigate to="/flights" /> : <Navigate to="/login" />}
           />
           {/* Public Routes */}
           <Route path="/login" element={<Layout><Login /></Layout>} />
@@ -57,6 +59,26 @@ const App: React.FC = () => {
             element={isAuthenticated ? (
               <DashboardLayout>
                 <Search />
+              </DashboardLayout>
+            ) : (
+              <Navigate to="/login" />
+            )}
+          />
+          <Route
+            path="/flights"
+            element={isAuthenticated ? (
+              <DashboardLayout>
+                <FlightList />
+              </DashboardLayout>
+            ) : (
+              <Navigate to="/login" />
+            )}
+          />
+          <Route
+            path="/work-orders"
+            element={isAuthenticated ? (
+              <DashboardLayout>
+                <WorkOrderHistory />
               </DashboardLayout>
             ) : (
               <Navigate to="/login" />
