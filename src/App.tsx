@@ -16,6 +16,7 @@ import DashboardLayout from '@layout/DashboardLayout.js';
 import Search from '@page/Search.js';
 import FlightList from '@page/FlightList.js';
 import WorkOrderHistory from '@page/WorkOrderHistory.js';
+import WorkOrders from '@page/WorkOrders.js';
 import BackdropLoading from '@component/BackdropLoading';
 const App: React.FC = () => {
   const { isLoading, loadingDescription } = useSelector((state: any) => state.ui);
@@ -29,7 +30,7 @@ const App: React.FC = () => {
           {/* Redirect root "/" based on auth */}
           <Route
             path="/"
-            element={isAuthenticated ? <Navigate to="/flights" /> : <Navigate to="/login" />}
+            element={isAuthenticated ? <Navigate to="/work-orders-management" /> : <Navigate to="/login" />}
           />
           {/* Public Routes */}
           <Route path="/login" element={<Layout><Login /></Layout>} />
@@ -49,6 +50,16 @@ const App: React.FC = () => {
             element={isAuthenticated ? (
               <DashboardLayout>
                 <WorkOrderHistory />
+              </DashboardLayout>
+            ) : (
+              <Navigate to="/login" />
+            )}
+          />
+          <Route
+            path="/work-orders-management"
+            element={isAuthenticated ? (
+              <DashboardLayout>
+                <WorkOrders />
               </DashboardLayout>
             ) : (
               <Navigate to="/login" />
