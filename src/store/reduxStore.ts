@@ -5,11 +5,13 @@ import { combineReducers } from 'redux';
 import authReducer from '@store/authReducer.js';
 import uiReducer from '@store/uiReducer';
 import menuReducer from '@store/menuReducer.js';
+import flightReducer from '@store/flightReducer';
 
 const rootReducer = combineReducers({
   auth: authReducer,
   menu: menuReducer,
   ui: uiReducer,
+  flight: flightReducer,
 });
 
 const persistConfig = {
