@@ -5,7 +5,7 @@ import { ref } from "process";
 export const ApiEndpoints = {
   auth: {
     authToken: () => '/auth/token',
-    // refreshToken: () => '/auth/refresh-token',
+    refreshToken: () => '/auth/refresh-token',
   },
   FTACheck: {
     getFTACheckList: () => '/fta-check',
