@@ -19,7 +19,7 @@ import WorkOrderHistory from '@page/WorkOrderHistory.js';
 import BackdropLoading from '@component/BackdropLoading';
 const App: React.FC = () => {
   const { isLoading, loadingDescription } = useSelector((state: any) => state.ui);
-  const isAuthenticated = useSelector((state: any) => !!state.auth?.auth?.accessToken);
+  const isAuthenticated = useSelector((state: any) => !!state.auth?.user?.accessToken);
   return (
     <AlertProvider>
       <Alert />
