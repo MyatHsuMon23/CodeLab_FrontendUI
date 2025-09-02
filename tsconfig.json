@@ -1,0 +1,54 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@store/*": [
+        "src/store/*"
+      ],
+      "@page/*": [
+        "src/pages/*"
+      ],
+      "@layout/*": [
+        "src/layouts/*"
+      ],
+      "@component/*": [
+        "src/components/*"
+      ],
+      "@assets/*": [
+        "src/assets/*"
+      ],
+      "@routes/*": [
+        "src/routes/*"
+      ],
+      "@api/*": [
+        "src/api/*"
+      ],
+      "@type/*": [
+        "src/types/*"
+      ],
+      "@hook/*": [
+        "src/hooks/*"
+      ],
+      "@provider/*": [
+        "src/provider/*"
+      ],
+      "@util/*": [
+        "src/utils/*"
+      ]
+    },
+    "lib": [
+      "dom",
+      "es2015"
+    ],
+    "noEmit": true,
+    "esModuleInterop": true,
+    "target": "es2020"
+  },
+  "include": [
+    "src",
+    "vite.config.ts"
+  ]
+}
