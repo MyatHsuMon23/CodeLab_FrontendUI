@@ -1,4 +1,4 @@
-import React, { FC, useContext, useState } from "react";
+import React, { FC, useState } from "react";
 import {
   Box,
   IconButton,
@@ -8,22 +8,16 @@ import {
   TextField,
   FormControl,
   FormHelperText,
-  useTheme,
-  Button,
-  Divider
+  useTheme
 } from "@mui/material";
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useDispatch, useSelector } from "react-redux";
 import LoadingButton from '@mui/lab/LoadingButton';
-import { RootState } from "@store/reduxStore";
 import { useNavigate } from "react-router";
-import { encrypt, getClaimsFromToken } from "@util/auth";
-import { ApiEndpoints } from "@api/endpoints";
+import { encrypt } from "@util/auth";
 import { useBackendLogin } from "@hook/auth/useBackendLogin";
-import { setTokens } from "@store/authReducer";
 
 const schema = yup
   .object()
@@ -39,7 +33,6 @@ const Login: FC = (): any => {
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
   });
-  const dispatch = useDispatch();
   const [isLoading, setLoading] = useState(false);
   const { loginToBackend } = useBackendLogin();
 
@@ -56,14 +49,7 @@ const Login: FC = (): any => {
     }
   };
 
-  const handleDemoLogin = () => {
-    // Demo login for testing flight management features
-    // dispatch(setTokens({
-    //   accessToken: 'demo-access-token-' + Date.now(),
-    //   refreshToken: 'demo-refresh-token-' + Date.now()
-    // }));
-    navigate('/flights');
-  };
+
   const theme = useTheme();
   return (
     <Box sx={{
@@ -141,29 +127,6 @@ const Login: FC = (): any => {
         </Stack>
 
       </form>
-
-      {/* Demo Login Section */}
-      <Box sx={{ mt: 3 }}>
-        <Divider sx={{ mb: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            Demo Mode
-          </Typography>
-        </Divider>
-        <Button
-          variant="outlined"
-          fullWidth
-          onClick={handleDemoLogin}
-          sx={{ 
-            textTransform: 'none',
-            py: 1.5
-          }}
-        >
-          🚀 Demo Login (Skip Authentication)
-        </Button>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-          Click here to explore the Flight Management System
-        </Typography>
-      </Box>
     </Box>
   );
 };
