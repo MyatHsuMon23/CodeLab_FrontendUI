@@ -91,7 +91,7 @@ const FlightList: React.FC = () => {
 
   // Computed values
   const filteredAndSortedFlights = useMemo(() => {
-    let result = flightData?.data || [];
+    let result = flightData || [];
 
     // Apply filters
     if (filters.flightNumber) {
@@ -123,7 +123,7 @@ const FlightList: React.FC = () => {
     });
 
     return result;
-  }, [flightData?.data, filters, sortOptions]);
+  }, [flightData, filters, sortOptions]);
 
   const parsedWorkOrder = useMemo(() => {
     if (!workOrderCommand.trim()) return null;
@@ -292,7 +292,7 @@ const FlightList: React.FC = () => {
         {/* Results Summary */}
         <Box mb={2}>
           <Typography variant="body2" color="text.secondary">
-            Showing {filteredAndSortedFlights.length} of {flightData?.data?.length || 0} flights
+            Showing {filteredAndSortedFlights.length} of {flightData?.length || 0} flights
           </Typography>
         </Box>
 
