@@ -3,6 +3,7 @@ import { fetchWithAuth } from './fetchWithAuth.js';
 import { useDispatch } from 'react-redux';
 import { useRefreshToken } from '@hook/auth/useRefreshToken.js';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
     import type { RootState } from '@store/reduxStore.js';
 
 interface RequestOptions extends Omit<RequestInit, 'body'> {
@@ -18,6 +19,7 @@ function buildQueryString(params?: QueryParams): string {
 
 function useBaseFetch() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { refreshTokenFlow } = useRefreshToken();
   const { accessToken, refreshToken } = useSelector((state: RootState) => state.auth.user) || {};
   return async function baseFetch<T>(
@@ -53,6 +55,7 @@ function useBaseFetch() {
       refreshTokenFlow,
       accessToken,
       refreshToken,
+      navigate
     );
 
     if (!response.ok) {
