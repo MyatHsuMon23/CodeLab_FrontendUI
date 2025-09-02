@@ -6,8 +6,8 @@ export interface MenuState {
 }
 
 const initialState: MenuState = {
-  selectedMenu: 'Create',
-    subTitle: 'Create FTA Check'
+  selectedMenu: 'Flights',
+  subTitle: 'Manage flights and work orders'
 };
 
 const menuSlice = createSlice({

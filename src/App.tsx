@@ -35,36 +35,6 @@ const App: React.FC = () => {
           <Route path="/login" element={<Layout><Login /></Layout>} />
           {/* Protected Dashboard Route */}
           <Route
-            path="/create"
-            element={isAuthenticated ? (
-              <DashboardLayout>
-                <Dashboard />
-              </DashboardLayout>
-            ) : (
-              <Navigate to="/login" />
-            )}
-          />
-          <Route
-            path="/fta-check-detail"
-            element={isAuthenticated ? (
-              <DashboardLayout>
-                <FTACheckDetail />
-              </DashboardLayout>
-            ) : (
-              <Navigate to="/login" />
-            )}
-          />
-          <Route
-            path="/search"
-            element={isAuthenticated ? (
-              <DashboardLayout>
-                <Search />
-              </DashboardLayout>
-            ) : (
-              <Navigate to="/login" />
-            )}
-          />
-          <Route
             path="/flights"
             element={isAuthenticated ? (
               <DashboardLayout>

@@ -51,14 +51,17 @@ const Login: FC = (): any => {
 
     setLoading(true);
     const result = await loginToBackend(payload);
+    if (result && result.success) {
+      navigate('/flights');
+    }
   };
 
   const handleDemoLogin = () => {
     // Demo login for testing flight management features
-    dispatch(setTokens({
-      accessToken: 'demo-access-token-' + Date.now(),
-      refreshToken: 'demo-refresh-token-' + Date.now()
-    }));
+    // dispatch(setTokens({
+    //   accessToken: 'demo-access-token-' + Date.now(),
+    //   refreshToken: 'demo-refresh-token-' + Date.now()
+    // }));
     navigate('/flights');
   };
   const theme = useTheme();

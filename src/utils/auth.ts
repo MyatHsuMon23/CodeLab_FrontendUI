@@ -20,13 +20,24 @@ export const getClaimsFromToken = (token: string): JwtPayload | null => {
 
 const Key = import.meta.env.VITE_APP_SECRET_KEY;
 const IV = '6543210987654321';
+// AES-256-ECB encryption with PKCS7 padding, matching backend
 export const encrypt = (text: string) => {
-  const ciphertext = CryptoJS.AES.encrypt(text, CryptoJS.enc.Utf8.parse(Key), {
-      iv: CryptoJS.enc.Utf8.parse(IV),
-      mode: CryptoJS.mode.CBC,
-      padding: CryptoJS.pad.Pkcs7
-  }).toString();
-  return ciphertext;
+  // Convert key to 32-byte array (AES-256)
+  let keyBytes = CryptoJS.enc.Utf8.parse(Key);
+  if (keyBytes.sigBytes < 32) {
+    // Pad key with zeros if less than 32 bytes
+    const padded = new Uint8Array(32);
+    const raw = CryptoJS.enc.Utf8.parse(Key).words;
+    for (let i = 0; i < Math.min(raw.length * 4, 32); i++) {
+      padded[i] = (raw[Math.floor(i / 4)] >> (24 - 8 * (i % 4))) & 0xff;
+    }
+    keyBytes = CryptoJS.lib.WordArray.create(padded);
+  }
+  const encrypted = CryptoJS.AES.encrypt(text, keyBytes, {
+    mode: CryptoJS.mode.ECB,
+    padding: CryptoJS.pad.Pkcs7
+  });
+  return encrypted.toString();
 };
 
 export const decrypt = (ciphertext: string) => {

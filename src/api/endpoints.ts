@@ -1,7 +1,3 @@
-// src/api/endpoints.ts
-
-import { ref } from "process";
-
 export const ApiEndpoints = {
   auth: {
     authToken: () => '/Auth/login',

@@ -2,9 +2,9 @@ export interface TokenResponse {
   success: boolean;
   message: string;
   data: {
-     token: string;
+     accessToken: string;
      refreshToken: string;
-    username: string;
+    tokenType: string;
     expiresAt: string;
   };
 }

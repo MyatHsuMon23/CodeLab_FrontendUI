@@ -42,11 +42,11 @@ export const useBackendLogin = () => {
             // Only use redux for persistence
             if (
                 result.success &&
-                result.data.token
+                result.data.accessToken
             ) {
                 dispatch(
                     setTokens({
-                        accessToken: result.data.token,
+                        accessToken: result.data.accessToken,
                         refreshToken: result.data.refreshToken,
                     })
                 );

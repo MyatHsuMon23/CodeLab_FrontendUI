@@ -1,12 +1,22 @@
 import * as React from "react";
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { Box, Paper } from "@mui/material";
 import coverImg from "@assets/images/cover.png";
+import { RootState } from "@store/reduxStore";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
+  const { accessToken } = useSelector((state: RootState) => state.auth.user);
+  const navigate = useNavigate();
+  React.useEffect(() => {
+    if (accessToken) {
+      navigate('/flights');
+    }
+  }, [accessToken, navigate]);
   return (
     <Box
       sx={{

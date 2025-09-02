@@ -10,13 +10,16 @@ import {
 import { Notifications, Settings, ChevronLeft } from "@mui/icons-material";
 import { useSelector, useDispatch } from 'react-redux';
 import { setSelectedMenu } from '@store/menuReducer.js'; // adjust the path as needed
-import logoWhite from "@assets/images/logo_white.png";
+import logoWhite from "@assets/images/logo_white.svg";
 import { sideMenuRoutes } from "../routes/sideMenuRoutes.js";
 import { Link } from 'react-router-dom';
 import { useTheme, useMediaQuery } from "@mui/material";
 import customTheme from "../theme.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ixLogo from "@assets/images/IX.png";
+
+import { useNavigate } from 'react-router-dom';
+import { RootState } from "@store/reduxStore.js";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const theme = useTheme();
@@ -28,7 +31,13 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const minimizedWidth = 80;
 
   const { selectedMenu, subTitle } = useSelector((state: any) => state.menu);
-  
+  const { accessToken } = useSelector((state: RootState) => state.auth.user);
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!accessToken) {
+      navigate('/login');
+    }
+  }, [accessToken, navigate]);
   const dispatch = useDispatch();
 
   return (
@@ -52,7 +61,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <Box sx={{ padding: minimized ? '10px 8px' : '10px 20px', height: "100%", display: "flex", flexDirection: "column" }}>
           <Box sx={{ mb: 2, textAlign: "center" }}>
             {!minimized && (
-              <img src={logoWhite} alt="Yusen Logistics" style={{ width: '80%' }} />
+              <img src={logoWhite} alt="Logo Image" style={{ width: '80%' }} />
             )}
           </Box>
           <Box sx={{ mt: 2, flexGrow: 1 }}>
@@ -75,30 +84,11 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                     justifyContent: minimized ? 'center' : 'flex-start',
                   }}
                 >
-                  <span>{menu.icon}</span>
-                  {!minimized && <Typography>{menu.label}</Typography>}
+                  <span style={{ color: theme.palette.primary.main }}>{menu.icon}</span>
+                  {!minimized && <Typography sx={{ fontSize: minimized ? '0.5rem' : '14px !important' }}>{menu.label}</Typography>}
                 </Link>
               </Box>
             ))}
-          </Box>
-          <Box sx={{ position: "relative", minHeight: 60 }}>
-            <Box
-              sx={{
-                position: "absolute",
-                left: minimized ? "20px" : -20,
-                bottom: 8,
-                transform: minimized ? "translateX(-50%)" : "none",
-                background: "#fff",
-                borderRadius: "0px 20px 20px 0px",
-                px: 1.5,
-                py: 0.5,
-                display: "inline-flex",
-                alignItems: "center",
-                boxShadow: 1,
-              }}
-            >
-              <img src={ixLogo} alt="ix" style={{ height: 25 }} />
-            </Box>
           </Box>
           <Box sx={{ textAlign: "end", mb: 1 }}>
             <IconButton
