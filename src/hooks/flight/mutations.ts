@@ -123,7 +123,7 @@ export const useSubmitWorkOrder = () => {
   });
 };
 
-export const useImportFlights = () => {
+export const useImportFlightsCSV = () => {
   const queryClient = useQueryClient();
   const { showAlert } = useAlert();
   const clientApi = useClientApi();
@@ -136,7 +136,31 @@ export const useImportFlights = () => {
     mutationFn: (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      return clientApi.post(ApiEndpoints.flights.importFlights(), formData);
+      return clientApi.post(ApiEndpoints.flights.importFlightsCSV(), formData);
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: flightQueryKeys.list() });
+      showAlert({ type: 'success', message: data?.message || 'Flights imported successfully!' });
+    },
+    onError: (error: ApiError) => {
+      showAlert({ type: 'error', message: error?.message || 'Failed to import flights' });
+    },
+  });
+};
+
+export const useImportFlights = () => {
+  const queryClient = useQueryClient();
+  const { showAlert } = useAlert();
+  const clientApi = useClientApi();
+
+  return useMutation<
+    FlightListResponse,
+    ApiError,
+    any // Accepts parsed JSON data
+  >({
+    mutationFn: (jsonData: any) => {
+      // Send JSON data directly
+      return clientApi.post(ApiEndpoints.flights.importFlights(), jsonData);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: flightQueryKeys.list() });

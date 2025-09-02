@@ -26,7 +26,7 @@ function useBaseFetch() {
     endpoint: string,
     options: RequestOptions = {}
   ): Promise<T> {
-    const domainEndpoint = import.meta.env.VITE_CUSTOMSIX_API_URL;
+    const domainEndpoint = import.meta.env.VITE_API_URL;
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     const requestUrl = `${domainEndpoint}${normalizedEndpoint}${buildQueryString(options.params)}`;
 

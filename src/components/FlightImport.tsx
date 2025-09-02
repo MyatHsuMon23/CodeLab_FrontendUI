@@ -26,7 +26,7 @@ import {
   GetApp as DownloadIcon,
   Visibility as PreviewIcon
 } from '@mui/icons-material';
-import { useImportFlights } from '@hook/flight/mutations';
+import { useImportFlights, useImportFlightsCSV } from '@hook/flight/mutations';
 import { useAlert } from '@provider/AlertProvider';
 import type { Flight } from '@type/flight.types';
 
@@ -74,7 +74,8 @@ const FlightImport: React.FC<FlightImportProps> = ({ onImportComplete }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { showAlert } = useAlert();
-  const importMutation = useImportFlights();
+  const importFlightsMutation = useImportFlights();
+  const importFlightsCSVMutation = useImportFlightsCSV();
 
   const handleFileSelect = () => {
     fileInputRef.current?.click();
@@ -97,7 +98,6 @@ const FlightImport: React.FC<FlightImportProps> = ({ onImportComplete }) => {
     }
 
     try {
-      // Simulate upload progress
       setUploadProgress(0);
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
@@ -109,23 +109,41 @@ const FlightImport: React.FC<FlightImportProps> = ({ onImportComplete }) => {
         });
       }, 200);
 
-      await importMutation.mutateAsync(file);
-      
+
+      if (fileExtension === 'json' || file.type === 'application/json') {
+        // Read and parse JSON file
+        const text = await file.text();
+        let jsonPayload;
+        try {
+          jsonPayload = JSON.parse(text);
+        } catch (err) {
+          clearInterval(progressInterval);
+          setUploadProgress(0);
+          showAlert({
+            type: 'error',
+            message: 'Invalid JSON file format.'
+          });
+          return;
+        }
+        await importFlightsMutation.mutateAsync(jsonPayload);
+      } else {
+        // CSV file
+        await importFlightsCSVMutation.mutateAsync(file);
+      }
+
       clearInterval(progressInterval);
       setUploadProgress(100);
-      
+
       showAlert({
         type: 'success',
         message: `Successfully imported flights from ${file.name}`
       });
-      
+
       onImportComplete?.();
-      
-      // Reset after a short delay
+
       setTimeout(() => {
         setUploadProgress(0);
       }, 2000);
-      
     } catch (error: any) {
       setUploadProgress(0);
       showAlert({
@@ -238,26 +256,26 @@ const FlightImport: React.FC<FlightImportProps> = ({ onImportComplete }) => {
               variant="contained"
               startIcon={<UploadIcon />}
               onClick={handleFileSelect}
-              disabled={importMutation.isPending || (uploadProgress > 0 && uploadProgress < 100)}
+              disabled={importFlightsCSVMutation.isPending || (uploadProgress > 0 && uploadProgress < 100)}
             >
               Upload File
             </Button>
 
-            <Button
+            {/* <Button
               variant="outlined"
               startIcon={<PreviewIcon />}
               onClick={() => setPreviewDialogOpen(true)}
             >
               Preview Sample Data
-            </Button>
+            </Button> */}
 
-            <Button
+            {/* <Button
               variant="outlined"
               onClick={loadSampleData}
-              disabled={importMutation.isPending}
+              disabled={importFlightsMutation.isPending}
             >
               Load Sample Data
-            </Button>
+            </Button> */}
           </Box>
 
           <Box mt={2}>
