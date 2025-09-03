@@ -7,18 +7,19 @@ import {
   Box,
   IconButton,
 } from "@mui/material";
+import { Logout } from "@mui/icons-material";
 import { Notifications, Settings, ChevronLeft } from "@mui/icons-material";
 import { useSelector, useDispatch } from 'react-redux';
 import { setSelectedMenu } from '@store/menuReducer.js'; // adjust the path as needed
-import logoWhite from "@assets/images/logo_white.svg";
+import logoWhite from "@assets/images/logo_white.png";
 import { sideMenuRoutes } from "../routes/sideMenuRoutes.js";
 import { Link } from 'react-router-dom';
 import { useTheme, useMediaQuery } from "@mui/material";
 import customTheme from "../theme.js";
 import { useEffect, useState } from "react";
-import ixLogo from "@assets/images/IX.png";
 
 import { useNavigate } from 'react-router-dom';
+import { logout } from '@store/authReducer.js';
 import { RootState } from "@store/reduxStore.js";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
@@ -61,7 +62,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <Box sx={{ padding: minimized ? '10px 8px' : '10px 20px', height: "100%", display: "flex", flexDirection: "column" }}>
           <Box sx={{ mb: 2, textAlign: "center" }}>
             {!minimized && (
-              <img src={logoWhite} alt="Logo Image" style={{ width: '80%' }} />
+              <img src={logoWhite} alt="Logo Image" style={{ width: '60%' }} />
             )}
           </Box>
           <Box sx={{ mt: 2, flexGrow: 1 }}>
@@ -125,8 +126,10 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               <Typography variant="body2">{subTitle}</Typography>
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <IconButton><Notifications color="primary" /></IconButton>
               <IconButton><Settings color="primary" /></IconButton>
+              <IconButton onClick={() => { dispatch(logout()); navigate('/login'); }}>
+                <Logout color="primary" />
+              </IconButton>
             </Box>
           </Toolbar>
         </AppBar>
