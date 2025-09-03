@@ -25,10 +25,10 @@ export const ApiEndpoints = {
     getWorkOrderHistory: () => '/WorkOrders',
     getWorkOrdersByFlight: (flightId: string) => `/WorkOrders/flight/${flightId}`,
     // New endpoints for comprehensive work order management
-    getWorkOrders: () => '/api/WorkOrders',
-    createWorkOrder: () => '/api/WorkOrders',
-    updateWorkOrder: (id: number) => `/api/WorkOrders/${id}`,
-    deleteWorkOrder: (id: number) => `/api/WorkOrders/${id}`,
-    getWorkOrderStatistics: () => '/api/WorkOrders/statistics',
+    getWorkOrders: () => '/WorkOrders',
+    createWorkOrder: () => '/WorkOrders',
+    updateWorkOrder: (id: number) => `/WorkOrders/${id}`,
+    deleteWorkOrder: (id: number) => `/WorkOrders/${id}`,
+    getWorkOrderStatistics: () => '/WorkOrders/statistics',
   },
 };

@@ -5,15 +5,12 @@ import {
   Navigate,
 } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import Dashboard from '@page/Create.js';
 import Login from '@page/Login.js';
 import Layout from '@layout/Layout.js';
 import './App.css';
 import { AlertProvider } from '@provider/AlertProvider.js';
 import Alert from '@component/Alert.js';
-import FTACheckDetail from '@page/FTACheckDetail.js';
 import DashboardLayout from '@layout/DashboardLayout.js';
-import Search from '@page/Search.js';
 import FlightList from '@page/FlightList.js';
 import WorkOrderHistory from '@page/WorkOrderHistory.js';
 import WorkOrders from '@page/WorkOrders.js';

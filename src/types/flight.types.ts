@@ -25,8 +25,37 @@ export interface WorkOrder {
   notes?: string;
 }
 
-export type WorkOrderStatus = 'Open' | 'InProgress' | 'Completed' | 'Cancelled';
-export type WorkOrderPriority = 'Low' | 'Normal' | 'High' | 'Critical';
+export type WorkOrderStatus = 0 | 1 | 2 | 3 | 4;
+export const WorkOrderStatusMap: { [key: number]: string } = {
+  0: 'Open',
+  1: 'InProgress',
+  2: 'Completed',
+  3: 'Cancelled',
+  4: 'OnHold'
+};
+
+export const WorkOrderStatusReverseMap: { [key: string]: number } = {
+  'Open': 0,
+  'InProgress': 1,
+  'Completed': 2,
+  'Cancelled': 3,
+  'OnHold': 4
+};
+
+export type WorkOrderPriority = 0 | 1 | 2 | 3;
+export const WorkOrderPriorityMap: { [key: number]: string } = {
+  0: 'Low',
+  1: 'Medium',
+  2: 'High',
+  3: 'Critical'
+};
+
+export const WorkOrderPriorityReverseMap: { [key: string]: number } = {
+  'Low': 0,
+  'Medium': 1,
+  'High': 2,
+  'Critical': 3
+};
 
 export interface WorkOrderCommand {
   type: 'CHK' | 'BAG' | 'CLEAN' | 'PBB';
@@ -139,6 +168,7 @@ export interface WorkOrderUpdateData extends WorkOrderCreateData {
   id: number;
   workOrderNumber: string;
   status: WorkOrderStatus;
+  request: string;
 }
 
 // Filter and sort interfaces

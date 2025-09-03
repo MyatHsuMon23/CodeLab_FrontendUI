@@ -83,9 +83,6 @@ const FlightList: React.FC = () => {
 
   // Queries and mutations
   const { data: flightData, isLoading: isLoadingFlights, refetch } = useFlightList();
-  const { data: workOrderHistoryData } = useWorkOrdersByFlight(
-    selectedFlight?.id || ''
-  );
   const submitWorkOrderMutation = useSubmitWorkOrder();
   const parseWorkOrderMutation = useParseWorkOrder();
 

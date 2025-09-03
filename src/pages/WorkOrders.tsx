@@ -50,6 +50,12 @@ import {
   useUpdateWorkOrder, 
   useDeleteWorkOrder 
 } from '@hook/flight/mutations';
+import {
+  WorkOrderStatusMap,
+  WorkOrderPriorityMap,
+  WorkOrderStatusReverseMap,
+  WorkOrderPriorityReverseMap
+} from '@type/flight.types';
 import type { 
   WorkOrder, 
   WorkOrderFilters, 
@@ -92,7 +98,7 @@ const WorkOrders: React.FC = () => {
     defaultValues: {
       aircraftRegistration: '',
       taskDescription: '',
-      priority: 'Normal',
+      priority: 1, // Medium
       assignedTechnician: '',
       scheduledDate: '',
       notes: ''
@@ -106,24 +112,25 @@ const WorkOrders: React.FC = () => {
   const statistics = statisticsData?.data;
 
   // Status and priority options
-  const statusOptions: WorkOrderStatus[] = ['Open', 'InProgress', 'Completed', 'Cancelled'];
-  const priorityOptions: WorkOrderPriority[] = ['Low', 'Normal', 'High', 'Critical'];
+  const statusOptions: WorkOrderStatus[] = [0, 1, 2, 3, 4];
+  const priorityOptions: WorkOrderPriority[] = [0, 1, 2, 3];
 
   // Helper functions
   const getStatusColor = (status: WorkOrderStatus): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
-    switch (status) {
+    switch (WorkOrderStatusMap[status]) {
       case 'Open': return 'info';
       case 'InProgress': return 'warning';
       case 'Completed': return 'success';
       case 'Cancelled': return 'error';
+      case 'OnHold': return 'secondary';
       default: return 'default';
     }
   };
 
   const getPriorityColor = (priority: WorkOrderPriority): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
-    switch (priority) {
+    switch (WorkOrderPriorityMap[priority]) {
       case 'Low': return 'default';
-      case 'Normal': return 'primary';
+      case 'Medium': return 'primary';
       case 'High': return 'warning';
       case 'Critical': return 'error';
       default: return 'default';
@@ -139,10 +146,10 @@ const WorkOrders: React.FC = () => {
   };
 
   // Event handlers
-  const handleFilterChange = (key: keyof WorkOrderFilters, value: string) => {
+  const handleFilterChange = (key: keyof WorkOrderFilters, value: string | number) => {
     setFilters(prev => ({
       ...prev,
-      [key]: value || undefined
+      [key]: typeof value === 'number' ? WorkOrderStatusMap[value] : value || undefined
     }));
     setPagination(prev => ({ ...prev, page: 1 }));
   };
@@ -169,13 +176,20 @@ const WorkOrders: React.FC = () => {
 
   const handleEdit = (workOrder: WorkOrder) => {
     setSelectedWorkOrder(workOrder);
+    // Ensure status and priority are numeric values
+    const statusValue = typeof workOrder.status === 'string'
+      ? WorkOrderStatusReverseMap[workOrder.status] ?? 0
+      : (workOrder.status ?? 0);
+    const priorityValue = typeof workOrder.priority === 'string'
+      ? WorkOrderPriorityReverseMap[workOrder.priority] ?? 1
+      : (workOrder.priority ?? 1);
     editForm.reset({
       id: workOrder.id,
       workOrderNumber: workOrder.workOrderNumber,
       aircraftRegistration: workOrder.aircraftRegistration,
       taskDescription: workOrder.taskDescription,
-      status: workOrder.status,
-      priority: workOrder.priority,
+      status: statusValue as WorkOrderStatus,
+      priority: priorityValue as WorkOrderPriority,
       assignedTechnician: workOrder.assignedTechnician,
       scheduledDate: workOrder.scheduledDate,
       notes: workOrder.notes || ''
@@ -185,7 +199,19 @@ const WorkOrders: React.FC = () => {
 
   const handleUpdate = async (data: WorkOrderUpdateData) => {
     try {
-      await updateMutation.mutateAsync(data);
+      // Ensure status and priority are numeric values
+      const statusValue = typeof data.status === 'string'
+        ? WorkOrderStatusReverseMap[data.status] ?? 0
+        : (data.status ?? 0);
+      const priorityValue = typeof data.priority === 'string'
+        ? WorkOrderPriorityReverseMap[data.priority] ?? 1
+        : (data.priority ?? 1);
+      const payload: WorkOrderUpdateData = {
+        ...data,
+        status: statusValue as WorkOrderStatus,
+        priority: priorityValue as WorkOrderPriority
+      };
+      await updateMutation.mutateAsync(payload);
       setEditDialogOpen(false);
       setSelectedWorkOrder(null);
       editForm.reset();
@@ -296,26 +322,28 @@ const WorkOrders: React.FC = () => {
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Status</InputLabel>
               <Select
-                value={filters.status || ''}
+                value={String(filters.status ?? '')}
                 label="Status"
                 onChange={(e) => handleFilterChange('status', e.target.value)}
+                renderValue={selected => selected === '' ? 'All' : WorkOrderStatusMap[Number(selected)]}
               >
                 <MenuItem value="">All</MenuItem>
-                {statusOptions.map(status => (
-                  <MenuItem key={status} value={status}>{status}</MenuItem>
+                {Object.entries(WorkOrderStatusMap).map(([key, label]) => (
+                  <MenuItem key={key} value={key}>{label}</MenuItem>
                 ))}
               </Select>
             </FormControl>
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Priority</InputLabel>
               <Select
-                value={filters.priority || ''}
+                value={String(filters.priority ?? '')}
                 label="Priority"
                 onChange={(e) => handleFilterChange('priority', e.target.value)}
+                renderValue={selected => selected === '' ? 'All' : WorkOrderPriorityMap[Number(selected)]}
               >
                 <MenuItem value="">All</MenuItem>
-                {priorityOptions.map(priority => (
-                  <MenuItem key={priority} value={priority}>{priority}</MenuItem>
+                {Object.entries(WorkOrderPriorityMap).map(([key, label]) => (
+                  <MenuItem key={key} value={key}>{label}</MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -343,7 +371,7 @@ const WorkOrders: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Work Order #</TableCell>
+                <TableCell>Work Order</TableCell>
                 <TableCell>Aircraft</TableCell>
                 <TableCell>Task Description</TableCell>
                 <TableCell>Status</TableCell>
@@ -510,7 +538,7 @@ const WorkOrders: React.FC = () => {
                       <InputLabel>Priority</InputLabel>
                       <Select {...field} label="Priority">
                         {priorityOptions.map(priority => (
-                          <MenuItem key={priority} value={priority}>{priority}</MenuItem>
+                          <MenuItem key={priority} value={priority}>{WorkOrderPriorityMap[priority]}</MenuItem>
                         ))}
                       </Select>
                     </FormControl>
@@ -589,7 +617,7 @@ const WorkOrders: React.FC = () => {
                       <InputLabel>Status</InputLabel>
                       <Select {...field} label="Status">
                         {statusOptions.map(status => (
-                          <MenuItem key={status} value={status}>{status}</MenuItem>
+                          <MenuItem key={status} value={status}>{WorkOrderStatusMap[status]}</MenuItem>
                         ))}
                       </Select>
                     </FormControl>
@@ -651,7 +679,7 @@ const WorkOrders: React.FC = () => {
                       <InputLabel>Priority</InputLabel>
                       <Select {...field} label="Priority">
                         {priorityOptions.map(priority => (
-                          <MenuItem key={priority} value={priority}>{priority}</MenuItem>
+                          <MenuItem key={priority} value={priority}>{WorkOrderPriorityMap[priority]}</MenuItem>
                         ))}
                       </Select>
                     </FormControl>

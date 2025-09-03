@@ -204,13 +204,13 @@ const WorkOrderHistory: React.FC = () => {
                           <Typography variant="subtitle2" gutterBottom color="primary">
                             Parsed Commands
                           </Typography>
-                          {submission.parsedCommands.length === 0 ? (
+                          {submission.parsedCommands?.length === 0 ? (
                             <Typography variant="body2" color="text.secondary">
                               No valid commands parsed
                             </Typography>
                           ) : (
                             <Stack spacing={2}>
-                              {submission.parsedCommands.map((command, index) => (
+                              {submission.parsedCommands?.map((command, index) => (
                                 <Box key={index}>
                                   <Box display="flex" alignItems="center" gap={1} mb={1}>
                                     <Chip
