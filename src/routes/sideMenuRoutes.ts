@@ -3,7 +3,8 @@ import createIcon from '@assets/images/create.png';
 import searchIcon from '@assets/images/search.png';
 import { 
   Flight as FlightIcon, 
-  History as HistoryIcon 
+  History as HistoryIcon,
+  Assignment as WorkOrderIcon
 } from '@mui/icons-material';
 
 export interface SideMenuRoute {
@@ -19,6 +20,12 @@ export const sideMenuRoutes: SideMenuRoute[] = [
     icon: React.createElement(FlightIcon, { style: { width: 20, height: 20 } }),
     path: '/flights',
     description: 'Manage flights and work orders',
+  },
+  {
+    label: 'Work Orders',
+    icon: React.createElement(WorkOrderIcon, { style: { width: 20, height: 20 } }),
+    path: '/work-orders-management',
+    description: 'Manage work orders',
   },
   {
     label: 'Work Order History',
