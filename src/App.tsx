@@ -1,3 +1,4 @@
+import React, { Suspense } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -23,46 +24,48 @@ const App: React.FC = () => {
       <Alert />
       <BackdropLoading open={isLoading} description={loadingDescription} />
       <Router>
-        <Routes>
-          {/* Redirect root "/" based on auth */}
-          <Route
-            path="/"
-            element={isAuthenticated ? <Navigate to="/work-orders-management" /> : <Navigate to="/login" />}
-          />
-          {/* Public Routes */}
-          <Route path="/login" element={<Layout><Login /></Layout>} />
-          {/* Protected Dashboard Route */}
-          <Route
-            path="/flights"
-            element={isAuthenticated ? (
-              <DashboardLayout>
-                <FlightList />
-              </DashboardLayout>
-            ) : (
-              <Navigate to="/login" />
-            )}
-          />
-          <Route
-            path="/work-orders"
-            element={isAuthenticated ? (
-              <DashboardLayout>
-                <WorkOrderHistory />
-              </DashboardLayout>
-            ) : (
-              <Navigate to="/login" />
-            )}
-          />
-          <Route
-            path="/work-orders-management"
-            element={isAuthenticated ? (
-              <DashboardLayout>
-                <WorkOrders />
-              </DashboardLayout>
-            ) : (
-              <Navigate to="/login" />
-            )}
-          />
-        </Routes>
+        <Suspense fallback={<BackdropLoading open={true} description="Loading page..." />}>
+          <Routes>
+            {/* Redirect root "/" based on auth */}
+            <Route
+              path="/"
+              element={isAuthenticated ? <Navigate to="/work-orders-management" /> : <Navigate to="/login" />}
+            />
+            {/* Public Routes */}
+            <Route path="/login" element={<Layout><Login /></Layout>} />
+            {/* Protected Dashboard Route */}
+            <Route
+              path="/flights"
+              element={isAuthenticated ? (
+                <DashboardLayout>
+                  <FlightList />
+                </DashboardLayout>
+              ) : (
+                <Navigate to="/login" />
+              )}
+            />
+            <Route
+              path="/work-orders"
+              element={isAuthenticated ? (
+                <DashboardLayout>
+                  <WorkOrderHistory />
+                </DashboardLayout>
+              ) : (
+                <Navigate to="/login" />
+              )}
+            />
+            <Route
+              path="/work-orders-management"
+              element={isAuthenticated ? (
+                <DashboardLayout>
+                  <WorkOrders />
+                </DashboardLayout>
+              ) : (
+                <Navigate to="/login" />
+              )}
+            />
+          </Routes>
+        </Suspense>
       </Router>
     </AlertProvider>
   );

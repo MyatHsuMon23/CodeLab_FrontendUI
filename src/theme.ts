@@ -3,7 +3,7 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#D2732F',
+      main: '#2f70d2',
       contrastText: '#fff',
     },
     secondary: {
@@ -83,10 +83,10 @@ const theme = createTheme({
           padding: '4px 16px',
         },
         outlined: {
-          color: '#D2732F',
+          color: '#2f70d2',
           fontWeight: 700,
           fontSize: '14px',
-          border: '2px solid #D2732F',
+          border: '2px solid #2f70d2',
           backgroundColor: '#ECF0FA',
           textTransform: 'none',
           padding: '4px 10px',
@@ -98,7 +98,7 @@ const theme = createTheme({
           },
         },
         contained: {
-          backgroundColor: '#D2732F',
+          backgroundColor: '#2f70d2',
           color: '#fff',
           fontWeight: 700,
           fontSize: '14px',
@@ -126,7 +126,7 @@ const theme = createTheme({
       styleOverrides: {
         underline: {
           '&:after': {
-            borderBottomColor: '#e09c5d', // your desired color
+            borderBottomColor: '#2f70d2', // your desired color
           },
         },
       },
