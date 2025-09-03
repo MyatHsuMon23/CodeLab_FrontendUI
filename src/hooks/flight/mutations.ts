@@ -10,7 +10,8 @@ import type {
   Flight, 
   FlightFormData,
   WorkOrderParseResponse,
-  WorkOrderSubmissionResponse,
+  FlightCommandResponse,
+  FlightCommandPayload,
   FlightListResponse,
   FlightDeleteResponse,
   WorkOrderCreateData,
@@ -109,19 +110,25 @@ export const useSubmitWorkOrder = () => {
   const clientApi = useClientApi();
 
   return useMutation<
-    WorkOrderSubmissionResponse,
+    FlightCommandResponse,
     ApiError,
-    { flightId: string; command: string }
+    { flightId: string; command: string; notes?: string }
   >({
-    mutationFn: ({ flightId, command }) =>
-      clientApi.post(ApiEndpoints.workOrders.submitWorkOrder(), { flightId, command }),
+    mutationFn: ({ flightId, command, notes }) => {
+      const payload: FlightCommandPayload = {
+        flightId: parseInt(flightId),
+        commandString: command,
+        notes: notes || ''
+      };
+      return clientApi.post(ApiEndpoints.flights.createCommand(flightId), payload);
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: flightQueryKeys.workOrders.history() });
       queryClient.invalidateQueries({ queryKey: flightQueryKeys.workOrders.all });
-      showAlert({ type: 'success', message: data?.message || 'Work order submitted successfully!' });
+      showAlert({ type: 'success', message: data?.message || 'Work order command submitted successfully!' });
     },
     onError: (error: ApiError) => {
-      showAlert({ type: 'error', message: error?.message || 'Failed to submit work order' });
+      showAlert({ type: 'error', message: error?.message || 'Failed to submit work order command' });
     },
   });
 };
