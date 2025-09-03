@@ -62,6 +62,66 @@ const theme = createTheme({
     borderRadius: 8,
   },
   components: {
+    MuiTextField: {
+      defaultProps: {
+        size: 'small',
+      },
+      styleOverrides: {
+        root: {
+          fontSize: '0.95rem',
+        },
+      },
+    },
+    MuiButton: {
+      defaultProps: {
+        size: 'small',
+      },
+      styleOverrides: {
+        root: {
+          fontSize: '0.95rem',
+          minHeight: '32px',
+          padding: '4px 16px',
+        },
+        outlined: {
+          color: '#D2732F',
+          fontWeight: 700,
+          fontSize: '14px',
+          border: '2px solid #D2732F',
+          backgroundColor: '#ECF0FA',
+          textTransform: 'none',
+          padding: '4px 10px',
+          minHeight: '32px',
+          '&:hover': {
+            borderColor: '#00263D',
+            color: '#00263D',
+            backgroundColor: 'transparent',
+          },
+        },
+        contained: {
+          backgroundColor: '#D2732F',
+          color: '#fff',
+          fontWeight: 700,
+          fontSize: '14px',
+          borderRadius: '8px',
+          textTransform: 'none',
+          minHeight: '32px',
+          boxShadow: 'none',
+          padding: '4px 16px',
+          '&:hover': {
+            backgroundColor: '#00263D',
+            color: '#fff',
+          },
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          border: '1px solid #76716d85',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        },
+      },
+    },
     MuiFilledInput: {
       styleOverrides: {
         underline: {
@@ -117,39 +177,10 @@ const theme = createTheme({
           marginLeft: '16px',
         },
       },
-    },
-    MuiButton: {
-      styleOverrides: {
-        outlined: {
-          color: '#D2732F',
-          fontWeight: 700,
-          fontSize: '14px',
-          border: '2px solid #D2732F',
-          backgroundColor: '#ECF0FA',
-          textTransform: 'none',
-          '&:hover': {
-            borderColor: '#00263D',
-            color: '#00263D',
-            backgroundColor: 'transparent',
-          },
-        },
-        contained: {
-          backgroundColor: '#D2732F',
-          borderRadius: '6px',
-          color: '#fff',
-          textTransform: 'none',
-          '&:hover': {
-            backgroundColor: '#b35c1f',
-          },
-          '&.Mui-disabled': {
-            backgroundColor: '#CDCDCD',
-            color: '#fff',
-            borderRadius: '6px',
-          },
-        },
+    // MuiButton overrides and defaultProps merged above
       },
     },
   },
-});
+);
 
 export default theme;

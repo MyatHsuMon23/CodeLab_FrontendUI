@@ -1,19 +1,13 @@
 // src/pages/FlightList.tsx
 
 import React, { useState, useMemo, useCallback } from 'react';
+import CustomTable from '../components/CustomTable';
 import {
   Box,
   Paper,
   Typography,
   TextField,
   Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableSortLabel,
   IconButton,
   Chip,
   Dialog,
@@ -82,7 +76,19 @@ const FlightList: React.FC = () => {
   });
 
   // Queries and mutations
-  const { data: flightData, isLoading: isLoadingFlights, refetch } = useFlightList();
+  // Pagination state
+  const [pagination, setPagination] = useState({ page: 1, perPage: 10 });
+
+  // API hooks
+  const {
+    data: flightListData,
+    isLoading: flightsLoading,
+    error: flightsError,
+    refetch: refetchFlights
+  } = useFlightList(filters, pagination);
+
+  const flightData = flightListData?.data || [];
+
   const submitWorkOrderMutation = useSubmitWorkOrder();
   const parseWorkOrderMutation = useParseWorkOrder();
 
@@ -198,19 +204,11 @@ const FlightList: React.FC = () => {
     }
   }, []);
 
-  if (isLoadingFlights) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h5" component="h1" fontWeight={700}>
+          <Typography variant="subtitle1" component="h1" fontWeight={700}>
             Flight Management
           </Typography>
           <Box display="flex" gap={1}>
@@ -224,8 +222,8 @@ const FlightList: React.FC = () => {
             <Button
               variant="outlined"
               startIcon={<RefreshIcon />}
-              onClick={() => refetch()}
-              disabled={isLoadingFlights}
+              onClick={() => refetchFlights()}
+              disabled={flightsLoading}
             >
               Refresh
             </Button>
@@ -237,7 +235,7 @@ const FlightList: React.FC = () => {
         {/* Import Section */}
         <Collapse in={importSectionOpen}>
           <Box mb={3}>
-            <FlightImport onImportComplete={() => refetch()} />
+            <FlightImport onImportComplete={() => refetchFlights()} />
           </Box>
         </Collapse>
 
@@ -272,109 +270,45 @@ const FlightList: React.FC = () => {
             <Button
               variant="contained"
               onClick={handleApplyFilters}
-              sx={{ height: '56px', minWidth: '100px' }}
+              sx={{ minWidth: '100px' }}
             >
               Filter
             </Button>
             <Button
               variant="outlined"
               onClick={handleClearFilters}
-              sx={{ height: '56px', minWidth: '56px', px: 1 }}
+              sx={{ minWidth: '56px', px: 1 }}
             >
               <ClearIcon />
             </Button>
           </Box>
         </Stack>
 
-        {/* Results Summary */}
-        <Box mb={2}>
-          <Typography variant="body2" color="text.secondary">
-            Showing {filteredAndSortedFlights.length} of {flightData?.length || 0} flights
-          </Typography>
-        </Box>
-
         {/* Flight Table */}
-        <TableContainer component={Paper} variant="outlined">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>
-                  <TableSortLabel
-                    active={sortOptions.field === 'flightNumber'}
-                    direction={sortOptions.field === 'flightNumber' ? sortOptions.direction : 'asc'}
-                    onClick={() => handleSort('flightNumber')}
-                  >
-                    Flight Number
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={sortOptions.field === 'scheduledArrivalTimeUtc'}
-                    direction={sortOptions.field === 'scheduledArrivalTimeUtc' ? sortOptions.direction : 'asc'}
-                    onClick={() => handleSort('scheduledArrivalTimeUtc')}
-                  >
-                    Scheduled Arrival
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={sortOptions.field === 'originAirport'}
-                    direction={sortOptions.field === 'originAirport' ? sortOptions.direction : 'asc'}
-                    onClick={() => handleSort('originAirport')}
-                  >
-                    Origin
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={sortOptions.field === 'destinationAirport'}
-                    direction={sortOptions.field === 'destinationAirport' ? sortOptions.direction : 'asc'}
-                    onClick={() => handleSort('destinationAirport')}
-                  >
-                    Destination
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell align="center">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredAndSortedFlights.map((flight) => (
-                <TableRow key={flight.id} hover>
-                  <TableCell>
-                    <Chip
-                      icon={<FlightIcon />}
-                      label={flight.flightNumber}
-                      variant="outlined"
-                      color="primary"
-                    />
-                  </TableCell>
-                  <TableCell>{formatDateTime(flight.scheduledArrivalTimeUtc)}</TableCell>
-                  <TableCell>{flight.originAirport}</TableCell>
-                  <TableCell>{flight.destinationAirport}</TableCell>
-                  <TableCell align="center">
-                    <Tooltip title="Create Work Order">
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleSelectFlight(flight)}
-                      >
-                        <SendIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredAndSortedFlights.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                    <Typography variant="body1" color="text.secondary">
-                      No flights found matching the current filters
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <CustomTable
+          columns={[
+            { label: 'Flight Number', field: 'flightNumber', render: row => <Chip icon={<FlightIcon />} label={row.flightNumber} variant="outlined" color="primary" /> },
+            { label: 'Scheduled Arrival', field: 'scheduledArrivalTimeUtc', render: row => formatDateTime(row.scheduledArrivalTimeUtc) },
+            { label: 'Origin', field: 'originAirport' },
+            { label: 'Destination', field: 'destinationAirport' },
+            { label: 'Actions', field: 'actions', align: 'center', render: row => (
+                <Tooltip title="Create Work Order">
+                  <IconButton color="primary" onClick={() => handleSelectFlight(row)}>
+                    <SendIcon />
+                  </IconButton>
+                </Tooltip>
+              )
+            }
+          ]}
+          data={filteredAndSortedFlights}
+          page={flightListData?.pagination ? (flightListData.pagination.currentPage - 1) : (pagination.page - 1)}
+          rowsPerPage={flightListData?.pagination ? flightListData.pagination.perPage : pagination.perPage}
+          totalRows={flightListData?.pagination ? flightListData.pagination.total : 0}
+          onPageChange={newPage => setPagination(prev => ({ ...prev, page: newPage + 1 }))}
+          onRowsPerPageChange={newPerPage => setPagination({ page: 1, perPage: newPerPage })}
+          showPagination={true}
+          loading={flightsLoading}
+        />
       </Paper>
 
       {/* Work Order Dialog */}

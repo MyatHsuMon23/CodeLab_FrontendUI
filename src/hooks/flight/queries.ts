@@ -34,23 +34,35 @@ export const flightQueryKeys = {
   },
 };
 
-export const useFlightList = (options?: UseQueryOptions<FlightListResponse, ApiError, Flight[]>) => {
+export const useFlightList = (
+  filters: any = {},
+  pagination: { page: number; perPage: number } = { page: 1, perPage: 10 },
+  options?: UseQueryOptions<FlightListResponse, ApiError>
+) => {
   const clientApi = useClientApi();
-  const queryKey = flightQueryKeys.list();
-  
-  const query = useQuery<FlightListResponse, ApiError, Flight[]>({
+  const queryKey = [
+    ...flightQueryKeys.list(),
+    filters,
+    pagination
+  ];
+  const query = useQuery<FlightListResponse, ApiError>({
     queryKey: queryKey,
-    queryFn: () => clientApi.get<FlightListResponse>(ApiEndpoints.flights.getFlights()),
-    select: (data) => data.data,
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: pagination.page.toString(),
+        perPage: pagination.perPage.toString(),
+        ...Object.fromEntries(
+          Object.entries(filters).filter(([_, value]) => value !== undefined && value !== '')
+        )
+      });
+      return clientApi.get<FlightListResponse>(`${ApiEndpoints.flights.getFlights()}?${params}`);
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     placeholderData: keepPreviousData,
     ...options,
   });
-
-  // Error handling similar to fta-check-analysis
   useQueryErrorHandler(query.isError, query.error, [...queryKey]);
-
   return query;
 };
 

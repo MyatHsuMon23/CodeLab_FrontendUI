@@ -86,7 +86,7 @@ const CustomTable: React.FC<CustomTableProps> = ({
           {data.map((row, idx) => (
             <TableRow key={row.id || row.ref || idx}>
               {columns.map(col => (
-                <TableCell key={col.field} sx={{fontWeight: 500}} align={col.align || 'left'}>
+                <TableCell sx={{fontWeight: 400}} key={col.field} align={col.align || 'left'}>
                   {col.render ? col.render(row) : row[col.field]}
                 </TableCell>
               ))}
@@ -101,7 +101,7 @@ const CustomTable: React.FC<CustomTableProps> = ({
           page={page}
           onPageChange={(_, newPage) => onPageChange && onPageChange(newPage)}
           rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={e => onRowsPerPageChange && onRowsPerPageChange(parseInt(e.target.value, 10))}
+          onRowsPerPageChange={e => onRowsPerPageChange && onRowsPerPageChange(parseInt(e.target.value, rowsPerPage))}
           rowsPerPageOptions={[10, 30, 50]}
         />
       )}

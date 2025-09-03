@@ -8,13 +8,13 @@ import {
   TextField,
   FormControl,
   FormHelperText,
-  useTheme
+  useTheme,
+  Button
 } from "@mui/material";
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import LoadingButton from '@mui/lab/LoadingButton';
 import { useNavigate } from "react-router";
 import { encrypt } from "@util/auth";
 import { useBackendLogin } from "@hook/auth/useBackendLogin";
@@ -107,11 +107,9 @@ const Login: FC = (): any => {
         {errors.password?.message && <FormHelperText style={{ color: '#ef1620' }}>Password is required</FormHelperText>}
 
         <Stack style={{ marginTop: '20px' }}>
-          <LoadingButton
+          <Button
             type="submit"
             loading={isLoading}
-            endIcon={<></>}
-            loadingPosition="end"
             variant="contained"
             size="large"
             sx={{
@@ -123,7 +121,7 @@ const Login: FC = (): any => {
             }}
           >
             Login
-          </LoadingButton>
+          </Button>
         </Stack>
 
       </form>

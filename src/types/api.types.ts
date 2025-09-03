@@ -21,8 +21,6 @@ export interface ApiResponse<T> {
 
 export interface Pagination {
   currentPage: number;
-  from: number;
-  to: number;
   lastPage: number;
   perPage: number;
   total: number;

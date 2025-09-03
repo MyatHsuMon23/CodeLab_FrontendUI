@@ -1,16 +1,9 @@
 // src/pages/WorkOrders.tsx
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Chip,
   Button,
   TextField,
@@ -27,16 +20,15 @@ import {
   Pagination,
   Card,
   CardContent,
-  CircularProgress,
   Alert,
-  Stack
+  Stack,
+Typography
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
-  Assignment as WorkOrderIcon,
   TrendingUp as StatsIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
@@ -65,6 +57,7 @@ import type {
   WorkOrderStatus,
   WorkOrderPriority
 } from '@type/flight.types';
+import CustomTable from '@component/CustomTable';
 
 const WorkOrders: React.FC = () => {
   // State management
@@ -147,15 +140,25 @@ const WorkOrders: React.FC = () => {
 
   // Event handlers
   const handleFilterChange = (key: keyof WorkOrderFilters, value: string | number) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: typeof value === 'number' ? WorkOrderStatusMap[value] : value || undefined
-    }));
+    setFilters(prev => {
+      if (key === 'priority') {
+        return {
+          ...prev,
+          priority: value === '' ? undefined : (Number(value) as WorkOrderPriority)
+        };
+      }
+      if (key === 'status') {
+        return {
+          ...prev,
+          status: value === '' ? undefined : (Number(value) as WorkOrderStatus)
+        };
+      }
+      return {
+        ...prev,
+        [key]: value || undefined
+      };
+    });
     setPagination(prev => ({ ...prev, page: 1 }));
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setPagination(prev => ({ ...prev, page: newPage }));
   };
 
   const handlePerPageChange = (newPerPage: number) => {
@@ -254,7 +257,7 @@ const WorkOrders: React.FC = () => {
       <Paper sx={{ p: 3 }}>
         {/* Header */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h4" component="h1" fontWeight={700}>
+          <Typography variant="subtitle1" fontWeight={700}>
             Work Orders Management
           </Typography>
           <Box display="flex" gap={2}>
@@ -276,41 +279,41 @@ const WorkOrders: React.FC = () => {
         {/* Statistics Cards */}
         {statistics && !statisticsLoading && (
           <Box display="flex" flexWrap="wrap" gap={2} mb={3}>
-            <Card sx={{ minWidth: 120, flex: 1 }}>
+            <Card sx={{ minWidth: 120, height: 100, flex: 1 }}>
               <CardContent sx={{ textAlign: 'center' }}>
-                <StatsIcon color="primary" sx={{ fontSize: 32, mb: 1 }} />
+                {/* <StatsIcon color="primary" sx={{ fontSize: 32, mb: 1 }} /> */}
                 <Typography variant="h4">{statistics.totalWorkOrders}</Typography>
                 <Typography variant="body2" color="text.secondary">Total</Typography>
               </CardContent>
             </Card>
-            <Card sx={{ minWidth: 120, flex: 1 }}>
+            <Card sx={{ minWidth: 120, height: 100, flex: 1 }}>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="info.main">{statistics.openWorkOrders}</Typography>
                 <Typography variant="body2" color="text.secondary">Open</Typography>
               </CardContent>
             </Card>
-            <Card sx={{ minWidth: 120, flex: 1 }}>
+            <Card sx={{ minWidth: 120, height: 100, flex: 1 }}>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="warning.main">{statistics.inProgressWorkOrders}</Typography>
                 <Typography variant="body2" color="text.secondary">In Progress</Typography>
               </CardContent>
             </Card>
-            <Card sx={{ minWidth: 120, flex: 1 }}>
+            <Card sx={{ minWidth: 120, height: 100, flex: 1 }}>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="success.main">{statistics.completedWorkOrders}</Typography>
                 <Typography variant="body2" color="text.secondary">Completed</Typography>
               </CardContent>
             </Card>
-            <Card sx={{ minWidth: 120, flex: 1 }}>
+            <Card sx={{ minWidth: 120, height: 100, flex: 1 }}>
               <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" color="error.main">{statistics.criticalPriorityWorkOrders}</Typography>
-                <Typography variant="body2" color="text.secondary">Critical</Typography>
+                <Typography variant="h4" color="error.main">{statistics.highPriorityWorkOrders}</Typography>
+                <Typography variant="body2" color="text.secondary">High Priority</Typography>
               </CardContent>
             </Card>
-            <Card sx={{ minWidth: 120, flex: 1 }}>
+            <Card sx={{ minWidth: 120, height: 100, flex: 1 }}>
               <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" color="warning.main">{statistics.highPriorityWorkOrders}</Typography>
-                <Typography variant="body2" color="text.secondary">High Priority</Typography>
+                <Typography variant="h4" color="warning.main">{statistics.overdueWorkOrders}</Typography>
+                <Typography variant="body2" color="text.secondary">Overdue</Typography>
               </CardContent>
             </Card>
           </Box>
@@ -367,111 +370,40 @@ const WorkOrders: React.FC = () => {
         </Box>
 
         {/* Work Orders Table */}
-        <TableContainer component={Paper} variant="outlined">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Work Order</TableCell>
-                <TableCell>Aircraft</TableCell>
-                <TableCell>Task Description</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Priority</TableCell>
-                <TableCell>Technician</TableCell>
-                <TableCell>Scheduled Date</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {workOrdersLoading ? (
-                <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                    <CircularProgress />
-                  </TableCell>
-                </TableRow>
-              ) : workOrders.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                    <Typography variant="body1" color="text.secondary">
-                      No work orders found
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                workOrders.map((workOrder) => (
-                  <TableRow key={workOrder.id} hover>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight={600}>
-                        {workOrder.workOrderNumber}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{workOrder.aircraftRegistration}</TableCell>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ maxWidth: 200 }}>
-                        {workOrder.taskDescription.length > 50 
-                          ? `${workOrder.taskDescription.substring(0, 50)}...`
-                          : workOrder.taskDescription
-                        }
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={workOrder.status} 
-                        color={getStatusColor(workOrder.status)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={workOrder.priority} 
-                        color={getPriorityColor(workOrder.priority)}
-                        size="small"
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell>{workOrder.assignedTechnician}</TableCell>
-                    <TableCell>{formatDate(workOrder.scheduledDate)}</TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1}>
-                        <Tooltip title="Edit">
-                          <IconButton 
-                            size="small" 
-                            onClick={() => handleEdit(workOrder)}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton 
-                            size="small" 
-                            onClick={() => {
-                              setSelectedWorkOrder(workOrder);
-                              setDeleteConfirmOpen(true);
-                            }}
-                            color="error"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        {/* Pagination */}
-        {workOrdersData && (
-          <Box display="flex" justifyContent="center" mt={2}>
-            <Pagination
-              count={Math.ceil(workOrdersData.totalCount / pagination.perPage)}
-              page={pagination.page}
-              onChange={(_, page) => handlePageChange(page)}
-              color="primary"
-            />
-          </Box>
-        )}
+        <CustomTable
+          columns={[
+            { label: 'Work Order', field: 'workOrderNumber'},
+            { label: 'Aircraft', field: 'aircraftRegistration' },
+            { label: 'Task Description', field: 'taskDescription', render: row => <Typography variant="body2" sx={{ maxWidth: 200, fontWeight: 400 }}>{row.taskDescription.length > 50 ? `${row.taskDescription.substring(0, 50)}...` : row.taskDescription}</Typography> },
+            { label: 'Status', field: 'status', render: row => <Chip label={row.status} color={getStatusColor(row.status)} size="small" /> },
+            { label: 'Priority', field: 'priority', render: row => <Chip label={row.priority} color={getPriorityColor(row.priority)} size="small" variant="outlined" /> },
+            { label: 'Technician', field: 'assignedTechnician' },
+            { label: 'Scheduled Date', field: 'scheduledDate', render: row => formatDate(row.scheduledDate) },
+            { label: 'Actions', field: 'actions', render: row => (
+                <Stack direction="row" spacing={1}>
+                  <Tooltip title="Edit">
+                    <IconButton size="small" onClick={() => handleEdit(row)}>
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <IconButton size="small" onClick={() => { setSelectedWorkOrder(row); setDeleteConfirmOpen(true); }} color="error">
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              )
+            }
+          ]}
+          data={workOrders}
+          page={workOrdersData?.pagination ? (workOrdersData.pagination.currentPage - 1) : (pagination.page - 1)}
+          rowsPerPage={workOrdersData?.pagination ? workOrdersData.pagination.perPage : pagination.perPage}
+          totalRows={workOrdersData?.pagination ? workOrdersData.pagination.total : 0}
+          onPageChange={newPage => setPagination(prev => ({ ...prev, page: newPage + 1 }))}
+          onRowsPerPageChange={handlePerPageChange}
+          showPagination={true}
+          loading={workOrdersLoading}
+        />
       </Paper>
 
       {/* Create Work Order Dialog */}

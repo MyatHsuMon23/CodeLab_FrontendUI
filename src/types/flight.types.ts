@@ -86,6 +86,12 @@ export interface FlightListResponse {
   success: boolean;
   data: Flight[];
   message?: string;
+  pagination: {
+    currentPage: number;
+    lastPage: number;
+    perPage: number;
+    total: number;
+  };
 }
 
 export interface WorkOrderParseResponse {
@@ -110,9 +116,12 @@ export interface WorkOrderHistoryResponse {
 export interface WorkOrderListResponse {
   success: boolean;
   data: WorkOrder[];
-  totalCount: number;
-  page: number;
-  perPage: number;
+  pagination: {
+    currentPage: number;
+    lastPage: number;
+    perPage: number;
+    total: number;
+  };
   message?: string;
 }
 
@@ -127,7 +136,7 @@ export interface WorkOrderStatistics {
   openWorkOrders: number;
   inProgressWorkOrders: number;
   completedWorkOrders: number;
-  criticalPriorityWorkOrders: number;
+  overdueWorkOrders: number;
   highPriorityWorkOrders: number;
 }
 

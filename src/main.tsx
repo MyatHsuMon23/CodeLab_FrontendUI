@@ -1,3 +1,5 @@
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
@@ -11,7 +13,14 @@ import { ReactQueryProvider } from '@provider/ReactQueryProvider.js';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
+      <PersistGate
+        loading={
+          <Backdrop open sx={{ color: '#fff', zIndex: 9999 }}>
+            <CircularProgress color="primary" size={48} thickness={4} />
+          </Backdrop>
+        }
+        persistor={persistor}
+      >
         <ThemeProvider theme={theme}>
           <ReactQueryProvider>
             <App />
