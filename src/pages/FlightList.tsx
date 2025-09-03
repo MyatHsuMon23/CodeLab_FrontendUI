@@ -335,7 +335,7 @@ const FlightList: React.FC = () => {
           <TextField
             fullWidth
             multiline
-            rows={3}
+            rows={1}
             label="Work Order Command"
             placeholder="CHK15|BAG25|CLEAN10|PBB90"
             value={workOrderCommand}
@@ -343,6 +343,34 @@ const FlightList: React.FC = () => {
             margin="normal"
             helperText="Enter commands separated by | (e.g., CHK15|BAG25|CLEAN10|PBB90)"
           />
+          
+          {/* Parse Preview */}
+          {parsedWorkOrder && (
+            <Card variant="outlined" sx={{ mt: 0 }}>
+              <CardContent>
+                {/* <Typography variant="body2" gutterBottom>
+                  Command Preview
+                </Typography> */}
+                
+                {/* {!parsedWorkOrder.isValid && (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    {parsedWorkOrder.errors.join(', ')}
+                  </Alert>
+                )} */}
+
+                {parsedWorkOrder.commands.map((cmd, index) => (
+                  <Box key={index} mb={1}>
+                    <Chip
+                      label={cmd.description}
+                      color={cmd.isValid ? 'success' : 'error'}
+                      variant={cmd.isValid ? 'filled' : 'outlined'}
+                      size="small"
+                    />
+                  </Box>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           <TextField
             fullWidth
@@ -357,7 +385,7 @@ const FlightList: React.FC = () => {
           />
 
           {/* Command Examples */}
-          <Box mt={2} mb={2}>
+          {/* <Box mt={2} mb={2}>
             <Typography variant="subtitle2" gutterBottom>
               Example Commands:
             </Typography>
@@ -373,7 +401,7 @@ const FlightList: React.FC = () => {
                 />
               ))}
             </Box>
-          </Box>
+          </Box> */}
 
           {/* Command Help */}
           <Box mb={2}>
@@ -386,34 +414,6 @@ const FlightList: React.FC = () => {
               </Typography>
             ))}
           </Box>
-
-          {/* Parse Preview */}
-          {parsedWorkOrder && (
-            <Card variant="outlined" sx={{ mt: 2 }}>
-              <CardContent>
-                <Typography variant="subtitle2" gutterBottom>
-                  Command Preview:
-                </Typography>
-                
-                {!parsedWorkOrder.isValid && (
-                  <Alert severity="error" sx={{ mb: 2 }}>
-                    {parsedWorkOrder.errors.join(', ')}
-                  </Alert>
-                )}
-
-                {parsedWorkOrder.commands.map((cmd, index) => (
-                  <Box key={index} mb={1}>
-                    <Chip
-                      label={cmd.description}
-                      color={cmd.isValid ? 'success' : 'error'}
-                      variant={cmd.isValid ? 'filled' : 'outlined'}
-                      size="small"
-                    />
-                  </Box>
-                ))}
-              </CardContent>
-            </Card>
-          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setWorkOrderDialogOpen(false)}>
