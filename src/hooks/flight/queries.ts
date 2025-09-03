@@ -8,7 +8,11 @@ import { useQueryErrorHandler } from '../useQueryErrorHandler';
 import type { 
   FlightListResponse, 
   WorkOrderHistoryResponse,
-  Flight
+  Flight,
+  WorkOrderListResponse,
+  WorkOrderStatisticsResponse,
+  WorkOrderFilters,
+  WorkOrderPaginationParams
 } from '@type/flight.types';
 
 // Query key factory similar to fta-check-analysis pattern
@@ -20,6 +24,13 @@ export const flightQueryKeys = {
     all: ['workOrders'] as const,
     history: () => [...flightQueryKeys.workOrders.all, 'history'] as const,
     byFlight: (flightId: string) => [...flightQueryKeys.workOrders.all, 'byFlight', flightId] as const,
+    list: (filters: WorkOrderFilters, pagination: WorkOrderPaginationParams) => [
+      ...flightQueryKeys.workOrders.all, 
+      'list', 
+      filters, 
+      pagination
+    ] as const,
+    statistics: () => [...flightQueryKeys.workOrders.all, 'statistics'] as const,
   },
 };
 
@@ -94,6 +105,55 @@ export const useWorkOrdersByFlight = (
     queryKey: queryKey,
     queryFn: () => clientApi.get<WorkOrderHistoryResponse>(ApiEndpoints.workOrders.getWorkOrdersByFlight(flightId)),
     enabled: !!flightId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+    ...options,
+  });
+
+  useQueryErrorHandler(query.isError, query.error, [...queryKey]);
+
+  return query;
+};
+
+// New Work Orders queries
+export const useWorkOrderList = (
+  filters: WorkOrderFilters = {},
+  pagination: WorkOrderPaginationParams = { page: 1, perPage: 10 },
+  options?: UseQueryOptions<WorkOrderListResponse, ApiError>
+) => {
+  const clientApi = useClientApi();
+  const queryKey = flightQueryKeys.workOrders.list(filters, pagination);
+  
+  const query = useQuery<WorkOrderListResponse, ApiError>({
+    queryKey: queryKey,
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: pagination.page.toString(),
+        perPage: pagination.perPage.toString(),
+        ...Object.fromEntries(
+          Object.entries(filters).filter(([_, value]) => value !== undefined && value !== '')
+        )
+      });
+      return clientApi.get<WorkOrderListResponse>(`${ApiEndpoints.workOrders.getWorkOrders()}?${params}`);
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+    placeholderData: keepPreviousData,
+    ...options,
+  });
+
+  useQueryErrorHandler(query.isError, query.error, [...queryKey]);
+
+  return query;
+};
+
+export const useWorkOrderStatistics = (options?: UseQueryOptions<WorkOrderStatisticsResponse, ApiError>) => {
+  const clientApi = useClientApi();
+  const queryKey = flightQueryKeys.workOrders.statistics();
+  
+  const query = useQuery<WorkOrderStatisticsResponse, ApiError>({
+    queryKey: queryKey,
+    queryFn: () => clientApi.get<WorkOrderStatisticsResponse>(ApiEndpoints.workOrders.getWorkOrderStatistics()),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     ...options,

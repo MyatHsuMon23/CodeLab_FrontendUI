@@ -10,6 +10,24 @@ export interface Flight {
   updatedAt?: string;
 }
 
+// New Work Order types based on API requirements
+export interface WorkOrder {
+  id: number;
+  workOrderNumber: string;
+  aircraftRegistration: string;
+  taskDescription: string;
+  status: WorkOrderStatus;
+  priority: WorkOrderPriority;
+  assignedTechnician: string;
+  scheduledDate: string;
+  createdAt?: string;
+  updatedAt?: string;
+  notes?: string;
+}
+
+export type WorkOrderStatus = 'Open' | 'InProgress' | 'Completed' | 'Cancelled';
+export type WorkOrderPriority = 'Low' | 'Normal' | 'High' | 'Critical';
+
 export interface WorkOrderCommand {
   type: 'CHK' | 'BAG' | 'CLEAN' | 'PBB';
   value: number;
@@ -59,6 +77,37 @@ export interface WorkOrderHistoryResponse {
   message?: string;
 }
 
+// New Work Order API responses
+export interface WorkOrderListResponse {
+  success: boolean;
+  data: WorkOrder[];
+  totalCount: number;
+  page: number;
+  perPage: number;
+  message?: string;
+}
+
+export interface WorkOrderResponse {
+  success: boolean;
+  data: WorkOrder;
+  message?: string;
+}
+
+export interface WorkOrderStatistics {
+  totalWorkOrders: number;
+  openWorkOrders: number;
+  inProgressWorkOrders: number;
+  completedWorkOrders: number;
+  criticalPriorityWorkOrders: number;
+  highPriorityWorkOrders: number;
+}
+
+export interface WorkOrderStatisticsResponse {
+  success: boolean;
+  data: WorkOrderStatistics;
+  message?: string;
+}
+
 export interface FlightDeleteResponse {
   success: boolean;
   message?: string;
@@ -76,6 +125,22 @@ export interface WorkOrderFormData {
   command: string;
 }
 
+// New Work Order form data
+export interface WorkOrderCreateData {
+  aircraftRegistration: string;
+  taskDescription: string;
+  priority: WorkOrderPriority;
+  assignedTechnician: string;
+  scheduledDate: string;
+  notes?: string;
+}
+
+export interface WorkOrderUpdateData extends WorkOrderCreateData {
+  id: number;
+  workOrderNumber: string;
+  status: WorkOrderStatus;
+}
+
 // Filter and sort interfaces
 export interface FlightFilters {
   flightNumber?: string;
@@ -86,6 +151,19 @@ export interface FlightFilters {
 export interface FlightSortOptions {
   field: keyof Flight;
   direction: 'asc' | 'desc';
+}
+
+// Work Order filters and pagination
+export interface WorkOrderFilters {
+  status?: WorkOrderStatus;
+  aircraftRegistration?: string;
+  priority?: WorkOrderPriority;
+  assignedTechnician?: string;
+}
+
+export interface WorkOrderPaginationParams {
+  page: number;
+  perPage: number;
 }
 
 // Constants

@@ -12,7 +12,10 @@ import type {
   WorkOrderParseResponse,
   WorkOrderSubmissionResponse,
   FlightListResponse,
-  FlightDeleteResponse
+  FlightDeleteResponse,
+  WorkOrderCreateData,
+  WorkOrderUpdateData,
+  WorkOrderResponse
 } from '@type/flight.types';
 
 export const useCreateFlight = () => {
@@ -168,6 +171,73 @@ export const useImportFlights = () => {
     },
     onError: (error: ApiError) => {
       showAlert({ type: 'error', message: error?.message || 'Failed to import flights' });
+    },
+  });
+};
+
+// New Work Order mutations
+export const useCreateWorkOrder = () => {
+  const queryClient = useQueryClient();
+  const { showAlert } = useAlert();
+  const clientApi = useClientApi();
+
+  return useMutation<
+    WorkOrderResponse,
+    ApiError,
+    WorkOrderCreateData
+  >({
+    mutationFn: (workOrderData: WorkOrderCreateData) =>
+      clientApi.post(ApiEndpoints.workOrders.createWorkOrder(), workOrderData),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: flightQueryKeys.workOrders.all });
+      showAlert({ type: 'success', message: data?.message || 'Work order created successfully!' });
+    },
+    onError: (error: ApiError) => {
+      showAlert({ type: 'error', message: error?.message || 'Failed to create work order' });
+    },
+  });
+};
+
+export const useUpdateWorkOrder = () => {
+  const queryClient = useQueryClient();
+  const { showAlert } = useAlert();
+  const clientApi = useClientApi();
+
+  return useMutation<
+    WorkOrderResponse,
+    ApiError,
+    WorkOrderUpdateData
+  >({
+    mutationFn: (workOrderData: WorkOrderUpdateData) =>
+      clientApi.put(ApiEndpoints.workOrders.updateWorkOrder(workOrderData.id), workOrderData),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: flightQueryKeys.workOrders.all });
+      showAlert({ type: 'success', message: data?.message || 'Work order updated successfully!' });
+    },
+    onError: (error: ApiError) => {
+      showAlert({ type: 'error', message: error?.message || 'Failed to update work order' });
+    },
+  });
+};
+
+export const useDeleteWorkOrder = () => {
+  const queryClient = useQueryClient();
+  const { showAlert } = useAlert();
+  const clientApi = useClientApi();
+
+  return useMutation<
+    { success: boolean; message?: string },
+    ApiError,
+    number
+  >({
+    mutationFn: (id: number) =>
+      clientApi.delete(ApiEndpoints.workOrders.deleteWorkOrder(id)),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: flightQueryKeys.workOrders.all });
+      showAlert({ type: 'success', message: data?.message || 'Work order deleted successfully!' });
+    },
+    onError: (error: ApiError) => {
+      showAlert({ type: 'error', message: error?.message || 'Failed to delete work order' });
     },
   });
 };
