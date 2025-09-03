@@ -66,6 +66,7 @@ const FlightList: React.FC = () => {
 
   // Local state
   const [workOrderCommand, setWorkOrderCommand] = useState('');
+  const [workOrderNotes, setWorkOrderNotes] = useState('');
   const [workOrderDialogOpen, setWorkOrderDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [importSectionOpen, setImportSectionOpen] = useState(false);
@@ -164,23 +165,25 @@ const FlightList: React.FC = () => {
     try {
       await submitWorkOrderMutation.mutateAsync({
         flightId: selectedFlight.id,
-        command: workOrderCommand
+        command: workOrderCommand,
+        notes: workOrderNotes
       });
       
       showAlert({
         type: 'success',
-        message: 'Work order submitted successfully!'
+        message: 'Work order command submitted successfully!'
       });
       
       setWorkOrderCommand('');
+      setWorkOrderNotes('');
       setWorkOrderDialogOpen(false);
     } catch (error: any) {
       showAlert({
         type: 'error',
-        message: error.message || 'Failed to submit work order'
+        message: error.message || 'Failed to submit work order command'
       });
     }
-  }, [selectedFlight, workOrderCommand, submitWorkOrderMutation, showAlert]);
+  }, [selectedFlight, workOrderCommand, workOrderNotes, submitWorkOrderMutation, showAlert]);
 
   const handleParseCommand = useCallback(async () => {
     if (!workOrderCommand.trim()) return;
@@ -319,7 +322,7 @@ const FlightList: React.FC = () => {
         fullWidth
       >
         <DialogTitle>
-          Create Work Order - {selectedFlight?.flightNumber}
+          Create Work Order Command - {selectedFlight?.flightNumber}
         </DialogTitle>
         <DialogContent>
           <Box mb={2}>
@@ -339,6 +342,18 @@ const FlightList: React.FC = () => {
             onChange={(e) => setWorkOrderCommand(e.target.value)}
             margin="normal"
             helperText="Enter commands separated by | (e.g., CHK15|BAG25|CLEAN10|PBB90)"
+          />
+
+          <TextField
+            fullWidth
+            multiline
+            rows={2}
+            label="Notes (Optional)"
+            placeholder="Additional notes or instructions..."
+            value={workOrderNotes}
+            onChange={(e) => setWorkOrderNotes(e.target.value)}
+            margin="normal"
+            helperText="Optional notes for the work order command"
           />
 
           {/* Command Examples */}
@@ -414,7 +429,7 @@ const FlightList: React.FC = () => {
             }
             startIcon={submitWorkOrderMutation.isPending ? <CircularProgress size={16} /> : <SendIcon />}
           >
-            Submit Work Order
+            Submit Work Order Command
           </Button>
         </DialogActions>
       </Dialog>

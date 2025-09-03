@@ -106,6 +106,19 @@ export interface WorkOrderSubmissionResponse {
   message?: string;
 }
 
+// Flight Command interfaces
+export interface FlightCommandPayload {
+  flightId: number;
+  commandString: string;
+  notes?: string;
+}
+
+export interface FlightCommandResponse {
+  success: boolean;
+  data?: any;
+  message?: string;
+}
+
 export interface WorkOrderHistoryResponse {
   success: boolean;
   data: WorkOrderSubmission[];
