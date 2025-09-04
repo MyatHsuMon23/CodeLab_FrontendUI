@@ -1,6 +1,7 @@
 // src/pages/FlightList.tsx
 
 import React, { useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CustomTable from '../components/CustomTable';
 import {
   Box,
@@ -10,20 +11,11 @@ import {
   Button,
   IconButton,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
-  CircularProgress,
-  Card,
-  CardContent,
-  CardActions,
-  Divider,
   Tooltip,
   InputAdornment,
   Collapse,
-  Stack
+  Stack,
+  Divider
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -31,7 +23,7 @@ import {
   Refresh as RefreshIcon,
   FlightTakeoff as FlightIcon,
   History as HistoryIcon,
-  Send as SendIcon,
+  Visibility as VisibilityIcon,
   CloudUpload as UploadIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon
@@ -39,35 +31,28 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@store/reduxStore';
 import { 
-  setSelectedFlight, 
   setFilters, 
-  setSortOptions,
-  updateFilters 
+  setSortOptions
 } from '@store/flightReducer';
-import { useFlightList, useWorkOrdersByFlight } from '@hook/flight/queries';
-import { useSubmitWorkOrder, useParseWorkOrder } from '@hook/flight/mutations';
+import { useFlightList } from '@hook/flight/queries';
 import { useAlert } from '@provider/AlertProvider';
-import { WorkOrderParser } from '@util/workOrderParser';
 import FlightImport from '@component/FlightImport';
 import type { Flight, FlightSortOptions } from '@type/flight.types';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 
 const FlightList: React.FC = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { showAlert } = useAlert();
   
   // Redux state
   const { 
     flights, 
-    selectedFlight, 
     filters, 
     sortOptions 
   } = useSelector((state: RootState) => state.flight);
 
   // Local state
-  const [workOrderCommand, setWorkOrderCommand] = useState('');
-  const [workOrderNotes, setWorkOrderNotes] = useState('');
-  const [workOrderDialogOpen, setWorkOrderDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [importSectionOpen, setImportSectionOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState({
@@ -89,9 +74,6 @@ const FlightList: React.FC = () => {
   } = useFlightList(filters, pagination);
 
   const flightData = flightListData?.data || [];
-
-  const submitWorkOrderMutation = useSubmitWorkOrder();
-  const parseWorkOrderMutation = useParseWorkOrder();
 
   // Computed values
   const filteredAndSortedFlights = useMemo(() => {
@@ -129,11 +111,6 @@ const FlightList: React.FC = () => {
     return result;
   }, [flightData, filters, sortOptions]);
 
-  const parsedWorkOrder = useMemo(() => {
-    if (!workOrderCommand.trim()) return null;
-    return WorkOrderParser.parseCommand(workOrderCommand);
-  }, [workOrderCommand]);
-
   // Event handlers
   const handleFilterChange = useCallback((key: keyof typeof localFilters, value: string) => {
     setLocalFilters(prev => ({ ...prev, [key]: value }));
@@ -155,48 +132,8 @@ const FlightList: React.FC = () => {
   }, [dispatch, sortOptions]);
 
   const handleSelectFlight = useCallback((flight: Flight) => {
-    dispatch(setSelectedFlight(flight));
-    setWorkOrderDialogOpen(true);
-  }, [dispatch]);
-
-  const handleSubmitWorkOrder = useCallback(async () => {
-    if (!selectedFlight || !workOrderCommand.trim()) return;
-
-    try {
-      await submitWorkOrderMutation.mutateAsync({
-        flightId: selectedFlight.id,
-        command: workOrderCommand,
-        notes: workOrderNotes
-      });
-      
-      showAlert({
-        type: 'success',
-        message: 'Work order command submitted successfully!'
-      });
-      
-      setWorkOrderCommand('');
-      setWorkOrderNotes('');
-      setWorkOrderDialogOpen(false);
-    } catch (error: any) {
-      showAlert({
-        type: 'error',
-        message: error.message || 'Failed to submit work order command'
-      });
-    }
-  }, [selectedFlight, workOrderCommand, workOrderNotes, submitWorkOrderMutation, showAlert]);
-
-  const handleParseCommand = useCallback(async () => {
-    if (!workOrderCommand.trim()) return;
-
-    try {
-      await parseWorkOrderMutation.mutateAsync(workOrderCommand);
-    } catch (error: any) {
-      showAlert({
-        type: 'error',
-        message: error.message || 'Failed to parse command'
-      });
-    }
-  }, [workOrderCommand, parseWorkOrderMutation, showAlert]);
+    navigate(`/flights/${flight.id}`);
+  }, [navigate]);
 
   const formatDateTime = useCallback((dateTimeString: string) => {
     try {
@@ -295,9 +232,9 @@ const FlightList: React.FC = () => {
             { label: 'Origin', field: 'originAirport' },
             { label: 'Destination', field: 'destinationAirport' },
             { label: 'Actions', field: 'actions', align: 'center', render: row => (
-                <Tooltip title="Create Work Order">
+                <Tooltip title="View Flight Details">
                   <IconButton color="primary" onClick={() => handleSelectFlight(row)}>
-                    <SendIcon />
+                    <VisibilityIcon />
                   </IconButton>
                 </Tooltip>
               )
@@ -313,126 +250,6 @@ const FlightList: React.FC = () => {
           loading={flightsLoading}
         />
       </Paper>
-
-      {/* Work Order Dialog */}
-      <Dialog
-        open={workOrderDialogOpen}
-        onClose={() => setWorkOrderDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          Create Work Order Command - {selectedFlight?.flightNumber}
-        </DialogTitle>
-        <DialogContent>
-          <Box mb={2}>
-            <Typography variant="body2" color="text.secondary">
-              {selectedFlight?.originAirport} → {selectedFlight?.destinationAirport} | 
-              Arrival: {selectedFlight && formatDateTime(selectedFlight.scheduledArrivalTimeUtc)}
-            </Typography>
-          </Box>
-
-          <TextField
-            fullWidth
-            multiline
-            rows={1}
-            label="Work Order Command"
-            placeholder="CHK15|BAG25|CLEAN10|PBB90"
-            value={workOrderCommand}
-            onChange={(e) => setWorkOrderCommand(e.target.value)}
-            margin="normal"
-            helperText="Enter commands separated by | (e.g., CHK15|BAG25|CLEAN10|PBB90)"
-          />
-          
-          {/* Parse Preview */}
-          {parsedWorkOrder && (
-            <Card variant="outlined" sx={{ mt: 0 }}>
-              <CardContent>
-                {/* <Typography variant="body2" gutterBottom>
-                  Command Preview
-                </Typography> */}
-                
-                {/* {!parsedWorkOrder.isValid && (
-                  <Alert severity="error" sx={{ mb: 2 }}>
-                    {parsedWorkOrder.errors.join(', ')}
-                  </Alert>
-                )} */}
-
-                {parsedWorkOrder.commands.map((cmd, index) => (
-                  <Box key={index} mb={1}>
-                    <Chip
-                      label={cmd.description}
-                      color={cmd.isValid ? 'success' : 'error'}
-                      variant={cmd.isValid ? 'filled' : 'outlined'}
-                      size="small"
-                    />
-                  </Box>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-
-          <TextField
-            fullWidth
-            multiline
-            rows={2}
-            label="Notes (Optional)"
-            placeholder="Additional notes or instructions..."
-            value={workOrderNotes}
-            onChange={(e) => setWorkOrderNotes(e.target.value)}
-            margin="normal"
-            helperText="Optional notes for the work order command"
-          />
-
-          {/* Command Examples */}
-          {/* <Box mt={2} mb={2}>
-            <Typography variant="subtitle2" gutterBottom>
-              Example Commands:
-            </Typography>
-            <Box display="flex" gap={1} flexWrap="wrap">
-              {WorkOrderParser.getCommandExamples().map((example, index) => (
-                <Chip
-                  key={index}
-                  label={example}
-                  variant="outlined"
-                  size="small"
-                  onClick={() => setWorkOrderCommand(example)}
-                  clickable
-                />
-              ))}
-            </Box>
-          </Box> */}
-
-          {/* Command Help */}
-          <Box mb={2}>
-            <Typography variant="subtitle2" gutterBottom>
-              Command Types:
-            </Typography>
-            {Object.entries(WorkOrderParser.getCommandHelp()).map(([key, help]) => (
-              <Typography key={key} variant="body2" color="text.secondary" gutterBottom>
-                <strong>{key}:</strong> {help}
-              </Typography>
-            ))}
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setWorkOrderDialogOpen(false)}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmitWorkOrder}
-            disabled={
-              !workOrderCommand.trim() || 
-              !parsedWorkOrder?.isValid ||
-              submitWorkOrderMutation.isPending
-            }
-            startIcon={submitWorkOrderMutation.isPending ? <CircularProgress size={16} /> : <SendIcon />}
-          >
-            Submit Work Order Command
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };
