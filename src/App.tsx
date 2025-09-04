@@ -13,6 +13,7 @@ import { AlertProvider } from '@provider/AlertProvider.js';
 import Alert from '@component/Alert.js';
 import DashboardLayout from '@layout/DashboardLayout.js';
 import FlightList from '@page/FlightList.js';
+import FlightDetail from '@page/FlightDetail.js';
 import WorkOrderHistory from '@page/WorkOrderHistory.js';
 import WorkOrders from '@page/WorkOrders.js';
 import BackdropLoading from '@component/BackdropLoading';
@@ -39,6 +40,16 @@ const App: React.FC = () => {
               element={isAuthenticated ? (
                 <DashboardLayout>
                   <FlightList />
+                </DashboardLayout>
+              ) : (
+                <Navigate to="/login" />
+              )}
+            />
+            <Route
+              path="/flights/:id"
+              element={isAuthenticated ? (
+                <DashboardLayout>
+                  <FlightDetail />
                 </DashboardLayout>
               ) : (
                 <Navigate to="/login" />

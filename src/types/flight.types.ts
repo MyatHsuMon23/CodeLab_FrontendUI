@@ -8,6 +8,7 @@ export interface Flight {
   destinationAirport: string;
   createdAt?: string;
   updatedAt?: string;
+  workOrderSubmissions?: WorkOrderSubmission[];
 }
 
 // New Work Order types based on API requirements
