@@ -1,3 +1,26 @@
+// Latest Flight Detail API response type
+export interface FlightDetailWithWorkOrders {
+  id: string | number;
+  flightNumber: string;
+  scheduledArrivalTimeUtc: string;
+  originAirport: string;
+  destinationAirport: string;
+  createdAt?: string;
+  workOrderSubmissions: Array<{
+    id: string | number;
+    commandString: string;
+    parsedCommands: Array<{
+      type: 'CHK' | 'BAG' | 'CLEAN' | 'PBB';
+      value: string;
+      displayText: string;
+      isValid: boolean;
+    }>;
+    humanReadableCommands: string;
+    submittedAt: string;
+    submittedBy: string;
+    notes?: string;
+  }>;
+}
 // src/types/flight.types.ts
 
 export interface Flight {

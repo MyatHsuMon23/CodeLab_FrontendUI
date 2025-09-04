@@ -18,12 +18,11 @@ import WorkOrderHistory from '@page/WorkOrderHistory.js';
 import WorkOrders from '@page/WorkOrders.js';
 import BackdropLoading from '@component/BackdropLoading';
 const App: React.FC = () => {
-  const { isLoading, loadingDescription } = useSelector((state: any) => state.ui);
   const isAuthenticated = useSelector((state: any) => !!state.auth?.user?.accessToken);
   return (
     <AlertProvider>
       <Alert />
-      <BackdropLoading open={isLoading} description={loadingDescription} />
+      {/* <BackdropLoading open={isLoading} description={loadingDescription} /> */}
       <Router>
         <Suspense fallback={<BackdropLoading open={true} description="Loading page..." />}>
           <Routes>

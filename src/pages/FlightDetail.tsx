@@ -108,8 +108,8 @@ const FlightDetail: React.FC = () => {
     if (!flight || !workOrderCommand.trim()) return;
 
     try {
-      await submitWorkOrderMutation.mutateAsync({
-        flightId: flight.id,
+          await submitWorkOrderMutation.mutateAsync({
+            flightId: String(flight.id),
         command: workOrderCommand,
         notes: workOrderNotes
       });
@@ -126,8 +126,8 @@ const FlightDetail: React.FC = () => {
     if (!flight) return;
 
     try {
-      await assignWorkOrderMutation.mutateAsync({
-        flightId: flight.id,
+          await assignWorkOrderMutation.mutateAsync({
+            flightId: String(flight.id),
         workOrderData: workOrderForm
       });
       
@@ -215,11 +215,6 @@ const FlightDetail: React.FC = () => {
                 <strong>Created:</strong> {formatDateTime(flight.createdAt)}
               </Typography>
             )}
-            {flight.updatedAt && (
-              <Typography variant="body2" color="text.secondary">
-                <strong>Last Updated:</strong> {formatDateTime(flight.updatedAt)}
-              </Typography>
-            )}
           </Box>
         </CardContent>
       </Paper>
@@ -231,66 +226,64 @@ const FlightDetail: React.FC = () => {
         </Typography>
         <Divider sx={{ mb: 2 }} />
         
-        {flight.workOrderSubmissions && flight.workOrderSubmissions.length > 0 ? (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Command String</TableCell>
-                  <TableCell>Parsed Commands</TableCell>
-                  <TableCell>Submitted At</TableCell>
-                  <TableCell>Submitted By</TableCell>
-                  <TableCell>Status</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {flight.workOrderSubmissions.map((submission) => (
-                  <TableRow key={submission.id}>
-                    <TableCell>
-                      <Typography variant="body2" fontFamily="monospace">
-                        {submission.originalCommand}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box display="flex" flexWrap="wrap" gap={0.5}>
-                        {submission.parsedCommands.map((cmd, index) => (
-                          <Chip
-                            key={index}
-                            label={cmd.description}
-                            size="small"
-                            color={cmd.isValid ? 'success' : 'error'}
-                            variant="outlined"
-                          />
-                        ))}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {formatDateTime(submission.submittedAt)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {submission.submittedBy || 'Unknown'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={submission.isValid ? 'Valid' : 'Invalid'}
-                        color={submission.isValid ? 'success' : 'error'}
-                        size="small"
-                      />
-                    </TableCell>
+          {flight.workOrderSubmissions && flight.workOrderSubmissions.length > 0 ? (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Command String</TableCell>
+                    <TableCell>Parsed Commands</TableCell>
+                    <TableCell>Submitted At</TableCell>
+                    <TableCell>Submitted By</TableCell>
+                    <TableCell>Notes</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-            No work order submissions found for this flight.
-          </Typography>
-        )}
+                </TableHead>
+                <TableBody>
+                  {flight.workOrderSubmissions.map((submission) => (
+                    <TableRow key={submission.id}>
+                      <TableCell>
+                        <Typography variant="body2" fontFamily="monospace">
+                          {submission.commandString}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                           <Box display="flex" flexWrap="wrap" gap={0.5}>
+                             {submission.parsedCommands.map((cmd, index) => (
+                               <Chip
+                                 key={index}
+                                 label={cmd.displayText}
+                                 size="small"
+                                 color={cmd.isValid ? 'success' : 'error'}
+                                 variant="outlined"
+                               />
+                             ))}
+                           </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {formatDateTime(submission.submittedAt)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {submission.submittedBy || 'Unknown'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {submission.notes || '-'}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+              No work order submissions found for this flight.
+            </Typography>
+          )}
       </Paper>
 
       {/* Actions Section */}

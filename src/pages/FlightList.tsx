@@ -77,7 +77,7 @@ const FlightList: React.FC = () => {
 
   // Computed values
   const filteredAndSortedFlights = useMemo(() => {
-    let result = flightData || [];
+    let result = Array.isArray(flightData) ? flightData : [];
 
     // Apply filters
     if (filters.flightNumber) {
@@ -97,16 +97,17 @@ const FlightList: React.FC = () => {
     }
 
     // Apply sorting
-    result.sort((a, b) => {
-      const aValue = a[sortOptions.field];
-      const bValue = b[sortOptions.field];
-      
-      if (sortOptions.direction === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-      }
-    });
+    if (Array.isArray(result)) {
+      result.sort((a, b) => {
+        const aValue = a[sortOptions.field];
+        const bValue = b[sortOptions.field];
+        if (sortOptions.direction === 'asc') {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+      });
+    }
 
     return result;
   }, [flightData, filters, sortOptions]);

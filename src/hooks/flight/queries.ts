@@ -12,8 +12,10 @@ import type {
   WorkOrderListResponse,
   WorkOrderStatisticsResponse,
   WorkOrderFilters,
-  WorkOrderPaginationParams
+  WorkOrderPaginationParams,
+  FlightDetailWithWorkOrders
 } from '@type/flight.types';
+import type { ApiResponse } from '@type/api.types';
 
 // Query key factory similar to fta-check-analysis pattern
 export const flightQueryKeys = {
@@ -68,15 +70,15 @@ export const useFlightList = (
 
 export const useFlightDetail = (
   flightId: string,
-  options?: UseQueryOptions<{ data: Flight }, ApiError, Flight>
+  options?: UseQueryOptions<ApiResponse<FlightDetailWithWorkOrders>, ApiError, FlightDetailWithWorkOrders>
 ) => {
   const clientApi = useClientApi();
   const queryKey = flightQueryKeys.detail(flightId);
-  
-  const query = useQuery<{ data: Flight }, ApiError, Flight>({
+
+  const query = useQuery<ApiResponse<FlightDetailWithWorkOrders>, ApiError, FlightDetailWithWorkOrders>({
     queryKey: queryKey,
-    queryFn: () => clientApi.get<{ data: Flight }>(ApiEndpoints.flights.getFlight(flightId)),
-    select: (data) => data.data,
+    queryFn: () => clientApi.get<ApiResponse<FlightDetailWithWorkOrders>>(ApiEndpoints.flights.getFlight(flightId)),
+    select: (response) => response.data,
     enabled: !!flightId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
