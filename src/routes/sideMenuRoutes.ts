@@ -28,9 +28,9 @@ export const sideMenuRoutes: SideMenuRoute[] = [
     description: 'Manage work orders',
   },
   {
-    label: 'Work Order History',
+    label: 'Flight Work Orders',
     icon: React.createElement(HistoryIcon, { style: { width: 20, height: 20 } }),
     path: '/work-orders',
-    description: 'View work order submissions',
+    description: 'View flight work order assignments',
   }
 ];

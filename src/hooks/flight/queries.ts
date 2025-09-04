@@ -13,7 +13,8 @@ import type {
   WorkOrderStatisticsResponse,
   WorkOrderFilters,
   WorkOrderPaginationParams,
-  FlightDetailWithWorkOrders
+  FlightDetailWithWorkOrders,
+  FlightWorkOrdersResponse
 } from '@type/flight.types';
 import type { ApiResponse } from '@type/api.types';
 
@@ -100,6 +101,27 @@ export const useWorkOrderHistory = (options?: UseQueryOptions<WorkOrderHistoryRe
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     placeholderData: keepPreviousData,
+    ...options,
+  });
+
+  useQueryErrorHandler(query.isError, query.error, [...queryKey]);
+
+  return query;
+};
+
+export const useFlightWorkOrders = (
+  flightId: string,
+  options?: UseQueryOptions<FlightWorkOrdersResponse, ApiError>
+) => {
+  const clientApi = useClientApi();
+  const queryKey = [...flightQueryKeys.detail(flightId), 'workOrders'];
+  
+  const query = useQuery<FlightWorkOrdersResponse, ApiError>({
+    queryKey: queryKey,
+    queryFn: () => clientApi.get<FlightWorkOrdersResponse>(ApiEndpoints.flights.getFlightWorkOrders(flightId)),
+    enabled: !!flightId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
     ...options,
   });
 

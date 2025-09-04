@@ -183,6 +183,12 @@ export interface WorkOrderStatisticsResponse {
   message?: string;
 }
 
+export interface FlightWorkOrdersResponse {
+  success: boolean;
+  message: string;
+  data: WorkOrder[];
+}
+
 export interface FlightDeleteResponse {
   success: boolean;
   message?: string;
