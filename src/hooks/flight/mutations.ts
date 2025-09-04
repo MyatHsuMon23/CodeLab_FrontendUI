@@ -248,3 +248,27 @@ export const useDeleteWorkOrder = () => {
     },
   });
 };
+
+// Flight-specific work order assignment
+export const useAssignWorkOrderToFlight = () => {
+  const queryClient = useQueryClient();
+  const { showAlert } = useAlert();
+  const clientApi = useClientApi();
+
+  return useMutation<
+    WorkOrderResponse,
+    ApiError,
+    { flightId: string; workOrderData: WorkOrderCreateData }
+  >({
+    mutationFn: ({ flightId, workOrderData }) =>
+      clientApi.post(ApiEndpoints.flights.createWorkOrder(flightId), workOrderData),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: flightQueryKeys.workOrders.all });
+      queryClient.invalidateQueries({ queryKey: flightQueryKeys.detail(data.data.id.toString()) });
+      showAlert({ type: 'success', message: data?.message || 'Work order assigned to flight successfully!' });
+    },
+    onError: (error: ApiError) => {
+      showAlert({ type: 'error', message: error?.message || 'Failed to assign work order to flight' });
+    },
+  });
+};
