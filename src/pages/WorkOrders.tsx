@@ -58,6 +58,7 @@ import type {
   WorkOrderPriority
 } from '@type/flight.types';
 import CustomTable from '@component/CustomTable';
+import { getPriorityColor, getStatusColor } from '@util/common';
 
 const WorkOrders: React.FC = () => {
   // State management
@@ -107,28 +108,6 @@ const WorkOrders: React.FC = () => {
   // Status and priority options
   const statusOptions: WorkOrderStatus[] = [0, 1, 2, 3, 4];
   const priorityOptions: WorkOrderPriority[] = [0, 1, 2, 3];
-
-  // Helper functions
-  const getStatusColor = (status: WorkOrderStatus): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
-    switch (WorkOrderStatusMap[status]) {
-      case 'Open': return 'info';
-      case 'InProgress': return 'warning';
-      case 'Completed': return 'success';
-      case 'Cancelled': return 'error';
-      case 'OnHold': return 'secondary';
-      default: return 'default';
-    }
-  };
-
-  const getPriorityColor = (priority: WorkOrderPriority): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
-    switch (WorkOrderPriorityMap[priority]) {
-      case 'Low': return 'default';
-      case 'Medium': return 'primary';
-      case 'High': return 'warning';
-      case 'Critical': return 'error';
-      default: return 'default';
-    }
-  };
 
   const formatDate = (dateString: string) => {
     try {
@@ -375,8 +354,8 @@ const WorkOrders: React.FC = () => {
             { label: 'Work Order', field: 'workOrderNumber'},
             { label: 'Aircraft', field: 'aircraftRegistration' },
             { label: 'Task Description', field: 'taskDescription', render: row => <Typography variant="body2" sx={{ maxWidth: 200, fontWeight: 400 }}>{row.taskDescription.length > 50 ? `${row.taskDescription.substring(0, 50)}...` : row.taskDescription}</Typography> },
-            { label: 'Status', field: 'status', render: row => <Chip label={row.status} color={getStatusColor(row.status)} size="small" /> },
-            { label: 'Priority', field: 'priority', render: row => <Chip label={row.priority} color={getPriorityColor(row.priority)} size="small" variant="outlined" /> },
+            { label: 'Status', field: 'status', render: row => <Chip label={WorkOrderStatusMap[row.status]} color={getStatusColor(row.status)} size="small" /> },
+            { label: 'Priority', field: 'priority', render: row => <Chip label={WorkOrderPriorityMap[row.priority]} color={getPriorityColor(row.priority)} size="small" variant="outlined" /> },
             { label: 'Technician', field: 'assignedTechnician' },
             { label: 'Scheduled Date', field: 'scheduledDate', render: row => formatDate(row.scheduledDate) },
             { label: 'Actions', field: 'actions', render: row => (

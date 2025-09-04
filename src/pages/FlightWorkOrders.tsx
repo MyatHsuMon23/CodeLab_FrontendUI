@@ -5,41 +5,102 @@ import {
   Box,
   Paper,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Chip,
-  CircularProgress,
   Alert,
   IconButton,
-  Tooltip,
-  TablePagination
-} from '@mui/material';
+  Tooltip} from '@mui/material';
 import {
   Flight as FlightIcon,
   Schedule as ScheduleIcon,
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { format, parseISO } from 'date-fns';
-import { useFlightList } from '@hook/flight/queries';
-import { WorkOrderStatusMap, WorkOrderPriorityMap } from '@type/flight.types';
+import { useFlightsWithWorkOrders } from '@hook/flight/useFlightsWithWorkOrders';
+import CustomTable from '@component/CustomTable';
+import { FlightWithWorkOrders } from '@type/flightWorkOrders.types';
 
 const FlightWorkOrders: React.FC = () => {
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
   const { 
     data: flightData, 
     isLoading, 
     error, 
     refetch 
-  } = useFlightList({}, { page: page + 1, perPage: rowsPerPage });
+  } = useFlightsWithWorkOrders({ page: page, perPage: rowsPerPage });
 
-  const flights = flightData?.data || [];
+  const flights: FlightWithWorkOrders[] = flightData?.data || [];
   const totalFlights = flightData?.pagination?.total || 0;
+  // Table columns definition
+  const columns = [
+    {
+      label: 'Flight No',
+      field: 'flightNumber',
+      render: (flight: FlightWithWorkOrders) => (
+        <Box display="flex" alignItems="center" gap={1}>
+          <FlightIcon color="primary" fontSize="small" />
+          <Typography variant="body1" fontWeight={600}>{flight.flightNumber}</Typography>
+        </Box>
+      )
+    },
+    {
+      label: 'Origin → Destination',
+      field: 'route',
+      render: (flight: FlightWithWorkOrders) => (
+        <Typography variant="body2">{flight.originAirport} → {flight.destinationAirport}</Typography>
+      )
+    },
+    {
+      label: 'Scheduled Arrival',
+      field: 'scheduledArrivalTimeUtc',
+      render: (flight: FlightWithWorkOrders) => (
+        <Box display="flex" alignItems="center" gap={1}>
+          <ScheduleIcon fontSize="small" color="action" />
+          <Typography variant="body2">{formatDateTime(flight.scheduledArrivalTimeUtc)}</Typography>
+        </Box>
+      )
+    },
+    {
+      label: 'Work Orders',
+      field: 'workOrders',
+      render: (flight: FlightWithWorkOrders) => (
+        flight.workOrders && flight.workOrders.length > 0 ? (
+          <Box display="flex" flexWrap="wrap" gap={0.5}>
+            {flight.workOrders.map((wo) => (
+              <Chip
+                key={wo.id}
+                label={wo.workOrderNumber}
+                color="primary"
+                size="small"
+                variant="outlined"
+                sx={{ cursor: 'pointer' }}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary">No work orders</Typography>
+        )
+      )
+    },
+    {
+      label: 'Work Order Command',
+      field: 'commandSubmissions',
+      render: (flight: FlightWithWorkOrders) => (
+        flight.commandSubmissions && flight.commandSubmissions.length > 0 ? (
+          <Box>
+            {flight.commandSubmissions.map((cmd, idx) => (
+              <Typography key={cmd.id || idx} variant="body2" color="secondary">
+                {cmd.humanReadableCommands}
+              </Typography>
+            ))}
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary">-</Typography>
+        )
+      )
+    },
+  ];
+  console.log(flights)
 
   const formatDateTime = (dateTimeString: string) => {
     try {
@@ -54,9 +115,10 @@ const FlightWorkOrders: React.FC = () => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+  // CustomTable expects onRowsPerPageChange: (rows: number) => void
+  const handleRowsPerPageChange = (rows: number) => {
+    setRowsPerPage(rows);
+    setPage(1);
   };
 
   if (error) {
@@ -86,100 +148,18 @@ const FlightWorkOrders: React.FC = () => {
           View all flights with their assigned work orders and associations.
         </Typography>
 
-        {isLoading ? (
-          <Box display="flex" justifyContent="center" py={6}>
-            <CircularProgress />
-          </Box>
-        ) : flights.length > 0 ? (
-          <>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Flight No</TableCell>
-                    <TableCell>Origin → Destination</TableCell>
-                    <TableCell>Scheduled Arrival</TableCell>
-                    <TableCell>Work Orders</TableCell>
-                    <TableCell>Status Summary</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {flights.map((flight) => (
-                    <TableRow key={flight.id}>
-                      <TableCell>
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <FlightIcon color="primary" fontSize="small" />
-                          <Typography variant="body1" fontWeight={600}>
-                            {flight.flightNumber}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {flight.originAirport} → {flight.destinationAirport}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <ScheduleIcon fontSize="small" color="action" />
-                          <Typography variant="body2">
-                            {formatDateTime(flight.scheduledArrivalTimeUtc)}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        {flight.workOrderSubmissions && flight.workOrderSubmissions.length > 0 ? (
-                          <Typography variant="body2" color="primary">
-                            {flight.workOrderSubmissions.length} work order{flight.workOrderSubmissions.length !== 1 ? 's' : ''}
-                          </Typography>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">
-                            No work orders
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {flight.workOrderSubmissions && flight.workOrderSubmissions.length > 0 ? (
-                          <Box display="flex" flexWrap="wrap" gap={0.5}>
-                            {flight.workOrderSubmissions.slice(0, 3).map((submission, index) => (
-                              <Chip
-                                key={index}
-                                label={submission.isValid ? 'Valid' : 'Invalid'}
-                                color={submission.isValid ? 'success' : 'error'}
-                                size="small"
-                                variant="outlined"
-                              />
-                            ))}
-                            {flight.workOrderSubmissions.length > 3 && (
-                              <Chip
-                                label={`+${flight.workOrderSubmissions.length - 3} more`}
-                                size="small"
-                                variant="outlined"
-                              />
-                            )}
-                          </Box>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">
-                            -
-                          </Typography>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25, 50]}
-              component="div"
-              count={totalFlights}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-          </>
+        {totalFlights != 0 ? (
+          <CustomTable
+            columns={columns}
+            data={flights}
+            page={page - 1}
+            rowsPerPage={rowsPerPage}
+            totalRows={totalFlights}
+            onPageChange={(newPage) => setPage(newPage + 1)}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            showPagination={true}
+            loading={isLoading}
+          />
         ) : (
           <Box textAlign="center" py={6}>
             <Typography variant="h6" color="text.secondary" gutterBottom>

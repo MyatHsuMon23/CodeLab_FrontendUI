@@ -13,6 +13,7 @@ export const ApiEndpoints = {
   flights: {
     getFlights: () => '/Flights',
     createFlight: () => '/Flights',
+    getFlightWithWorkOrders: () => `/Flights/with-work-orders`,
     getFlight: (id: string) => `/Flights/${id}`,
     updateFlight: (id: string) => `/Flights/${id}`,
     deleteFlight: (id: string) => `/Flights/${id}`,

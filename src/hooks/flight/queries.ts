@@ -81,7 +81,6 @@ export const useFlightDetail = (
     queryFn: () => clientApi.get<ApiResponse<FlightDetailWithWorkOrders>>(ApiEndpoints.flights.getFlight(flightId)),
     select: (response) => response.data,
     enabled: !!flightId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     ...options,
   });
@@ -98,7 +97,6 @@ export const useWorkOrderHistory = (options?: UseQueryOptions<WorkOrderHistoryRe
   const query = useQuery<WorkOrderHistoryResponse, ApiError>({
     queryKey: queryKey,
     queryFn: () => clientApi.get<WorkOrderHistoryResponse>(ApiEndpoints.workOrders.getWorkOrderHistory()),
-    staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     placeholderData: keepPreviousData,
     ...options,
@@ -120,7 +118,6 @@ export const useFlightWorkOrders = (
     queryKey: queryKey,
     queryFn: () => clientApi.get<FlightWorkOrdersResponse>(ApiEndpoints.flights.getFlightWorkOrders(flightId)),
     enabled: !!flightId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     ...options,
   });
@@ -141,7 +138,6 @@ export const useWorkOrdersByFlight = (
     queryKey: queryKey,
     queryFn: () => clientApi.get<WorkOrderHistoryResponse>(ApiEndpoints.workOrders.getWorkOrdersByFlight(flightId)),
     enabled: !!flightId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     ...options,
   });
@@ -172,7 +168,6 @@ export const useWorkOrderList = (
       });
       return clientApi.get<WorkOrderListResponse>(`${ApiEndpoints.workOrders.getWorkOrders()}?${params}`);
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     placeholderData: keepPreviousData,
     ...options,
@@ -190,7 +185,6 @@ export const useWorkOrderStatistics = (options?: UseQueryOptions<WorkOrderStatis
   const query = useQuery<WorkOrderStatisticsResponse, ApiError>({
     queryKey: queryKey,
     queryFn: () => clientApi.get<WorkOrderStatisticsResponse>(ApiEndpoints.workOrders.getWorkOrderStatistics()),
-    staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     ...options,
   });

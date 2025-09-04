@@ -44,6 +44,7 @@ const Login: FC = (): any => {
 
     setLoading(true);
     const result = await loginToBackend(payload);
+    setLoading(false);
     if (result && result.success) {
       navigate('/flights');
     }

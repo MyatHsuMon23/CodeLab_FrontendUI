@@ -44,6 +44,7 @@ import { useAlert } from '@provider/AlertProvider';
 import { WorkOrderParser } from '@util/workOrderParser';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { WorkOrderPriority, WorkOrderPriorityMap, WorkOrderStatusMap } from '@type/flight.types';
+import { getPriorityColor, getStatusColor } from '@util/common';
 
 const FlightDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -345,14 +346,14 @@ const FlightDetail: React.FC = () => {
                     <TableCell>
                       <Chip
                         label={WorkOrderStatusMap[workOrder.status]}
-                        color={workOrder.status === 2 ? 'success' : workOrder.status === 1 ? 'warning' : 'default'}
+                        color={getStatusColor(workOrder.status)}
                         size="small"
                       />
                     </TableCell>
                     <TableCell>
                       <Chip
                         label={WorkOrderPriorityMap[workOrder.priority]}
-                        color={workOrder.priority >= 2 ? 'error' : workOrder.priority === 1 ? 'warning' : 'default'}
+                        color={getPriorityColor(workOrder.priority)}
                         size="small"
                         variant="outlined"
                       />
