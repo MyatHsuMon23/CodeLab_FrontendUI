@@ -2,14 +2,13 @@
 
 ## Overview
 
-The Flight Work Orders Management System provides a comprehensive workflow for managing aviation maintenance operations. This document outlines the user interface, navigation flow, and key features with visual examples.
+The Flight Work Orders Management System provides a comprehensive workflow for managing aviation maintenance operations. This document outlines the user interface, navigation flow, and key features.
 
-## UI Screenshots and Workflow
+## UI Workflow
 
 ### 1. Authentication Flow
 
 #### Login Page
-![Login Page](https://github.com/user-attachments/assets/a54a4c1c-d712-4133-bd68-3076168eb2a0)
 
 **Features:**
 - Clean, modern login interface
@@ -28,7 +27,6 @@ The Flight Work Orders Management System provides a comprehensive workflow for m
 ### 2. Main Dashboard Interface
 
 #### Full Navigation Dashboard
-![Work Orders Dashboard](https://github.com/user-attachments/assets/923429ee-ecb8-4fce-b93a-983635e5f8ae)
 
 **Key UI Components:**
 - **Branded Sidebar Navigation**: Dark blue themed sidebar with logo
@@ -41,7 +39,6 @@ The Flight Work Orders Management System provides a comprehensive workflow for m
 - **Action Buttons**: Settings and logout functionality
 
 #### Collapsed Sidebar View
-![Collapsed Sidebar](https://github.com/user-attachments/assets/59a9f714-d761-4b88-bab3-e72f3bdd86b2)
 
 **Responsive Features:**
 - **Collapsible Sidebar**: Space-saving minimized navigation
@@ -74,7 +71,6 @@ The main work orders interface provides:
 ### 4. Flight Work Orders Integration
 
 #### Flight Work Orders View
-![Flight Work Orders](https://github.com/user-attachments/assets/ea40484a-1748-4f96-9e13-f68b82b16c3f)
 
 **Integration Features:**
 - **Flight-Work Order Association**: View relationships between flights and maintenance tasks
