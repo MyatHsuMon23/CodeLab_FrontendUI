@@ -25,11 +25,11 @@ export const useFetchFTACheckLists = (params?: FTACheckParams) => {
     const query = useQuery<
         FTACheckListResponse,
         ApiError,
-        FTACheckListResponseData
+        FTACheckListResponseData[]
     >({
         queryKey: queryKey,
         queryFn: () => clientApi.get<FTACheckListResponse>(ApiEndpoints.FTACheck.getFTACheckList(), params),
-        select: (data) => data.data,
+        select: (data) => data.data || [],
         staleTime: 5 * 60 * 1000, // 5 minutes
         retry: 1,
         placeholderData: keepPreviousData,

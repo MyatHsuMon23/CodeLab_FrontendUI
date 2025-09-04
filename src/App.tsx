@@ -14,7 +14,7 @@ import Alert from '@component/Alert.js';
 import DashboardLayout from '@layout/DashboardLayout.js';
 import FlightList from '@page/FlightList.js';
 import FlightDetail from '@page/FlightDetail.js';
-import WorkOrderHistory from '@page/WorkOrderHistory.js';
+import FlightWorkOrders from '@page/FlightWorkOrders.js';
 import WorkOrders from '@page/WorkOrders.js';
 import BackdropLoading from '@component/BackdropLoading';
 const App: React.FC = () => {
@@ -58,7 +58,7 @@ const App: React.FC = () => {
               path="/work-orders"
               element={isAuthenticated ? (
                 <DashboardLayout>
-                  <WorkOrderHistory />
+                  <FlightWorkOrders />
                 </DashboardLayout>
               ) : (
                 <Navigate to="/login" />

@@ -249,7 +249,31 @@ export const useDeleteWorkOrder = () => {
   });
 };
 
-// Flight-specific work order assignment
+// Flight-specific work order assignment - assign EXISTING work order to flight
+export const useAssignExistingWorkOrderToFlight = () => {
+  const queryClient = useQueryClient();
+  const { showAlert } = useAlert();
+  const clientApi = useClientApi();
+
+  return useMutation<
+    WorkOrderResponse,
+    ApiError,
+    { flightId: string; workOrderData: WorkOrderCreateData }
+  >({
+    mutationFn: ({ flightId, workOrderData }) =>
+      clientApi.post(ApiEndpoints.flights.createWorkOrder(flightId), workOrderData),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: flightQueryKeys.workOrders.all });
+      queryClient.invalidateQueries({ queryKey: flightQueryKeys.detail(variables.flightId) });
+      showAlert({ type: 'success', message: data?.message || 'Work order assigned to flight successfully!' });
+    },
+    onError: (error: ApiError) => {
+      showAlert({ type: 'error', message: error?.message || 'Failed to assign work order to flight' });
+    },
+  });
+};
+
+// Legacy mutation - creates NEW work order and assigns to flight  
 export const useAssignWorkOrderToFlight = () => {
   const queryClient = useQueryClient();
   const { showAlert } = useAlert();

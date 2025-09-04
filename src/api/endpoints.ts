@@ -20,6 +20,7 @@ export const ApiEndpoints = {
     importFlightsCSV: () => '/Flights/import/csv',
     createCommand: (flightId: string) => `/Flights/${flightId}/commands`,
     createWorkOrder: (flightId: string) => `/Flights/${flightId}/work-orders`,
+    getFlightWorkOrders: (flightId: string) => `/Flights/${flightId}/work-orders`,
   },
   workOrders: {
     parseCommand: () => '/work-orders/parse',

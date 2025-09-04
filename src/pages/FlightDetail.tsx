@@ -11,8 +11,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Tabs,
-  Tab,
   Table,
   TableBody,
   TableCell,
@@ -40,33 +38,25 @@ import {
   LocationOn as LocationIcon,
   Send as SendIcon
 } from '@mui/icons-material';
-import { useFlightDetail } from '@hook/flight/queries';
-import { useSubmitWorkOrder, useParseWorkOrder, useAssignWorkOrderToFlight } from '@hook/flight/mutations';
+import { useFlightDetail, useFlightWorkOrders, useWorkOrderList } from '@hook/flight/queries';
+import { useSubmitWorkOrder, useParseWorkOrder, useAssignExistingWorkOrderToFlight } from '@hook/flight/mutations';
 import { useAlert } from '@provider/AlertProvider';
 import { WorkOrderParser } from '@util/workOrderParser';
 import { formatDistanceToNow, parseISO } from 'date-fns';
-import { WorkOrderPriority, WorkOrderPriorityMap } from '@type/flight.types';
+import { WorkOrderPriority, WorkOrderPriorityMap, WorkOrderStatusMap } from '@type/flight.types';
 
 const FlightDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showAlert } = useAlert();
-  const [activeTab, setActiveTab] = useState(0);
 
   // Work Order Command state
   const [workOrderCommand, setWorkOrderCommand] = useState('');
   const [workOrderNotes, setWorkOrderNotes] = useState('');
 
-  // Assign Work Order state
+  // Assign Work Order state  
   const [assignWorkOrderDialogOpen, setAssignWorkOrderDialogOpen] = useState(false);
-  const [workOrderForm, setWorkOrderForm] = useState({
-    aircraftRegistration: '',
-    taskDescription: '',
-    priority: 1 as WorkOrderPriority,
-    assignedTechnician: '',
-    scheduledDate: '',
-    notes: ''
-  });
+  const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<number | null>(null);
 
   // API hooks
   const {
@@ -76,15 +66,32 @@ const FlightDetail: React.FC = () => {
     refetch
   } = useFlightDetail(id!);
 
+  // Get work orders assigned to this flight
+  const {
+    data: flightWorkOrdersData,
+    isLoading: flightWorkOrdersLoading,
+    refetch: refetchFlightWorkOrders
+  } = useFlightWorkOrders(id!);
+
+  // Get all available work orders for assignment
+  const {
+    data: availableWorkOrdersData,
+    isLoading: availableWorkOrdersLoading
+  } = useWorkOrderList({}, { page: 1, perPage: 100 });
+
   const submitWorkOrderMutation = useSubmitWorkOrder();
   const parseWorkOrderMutation = useParseWorkOrder();
-  const assignWorkOrderMutation = useAssignWorkOrderToFlight();
+  const assignWorkOrderMutation = useAssignExistingWorkOrderToFlight();
 
   // Computed values
   const parsedWorkOrder = useMemo(() => {
     if (!workOrderCommand.trim()) return null;
     return WorkOrderParser.parseCommand(workOrderCommand);
   }, [workOrderCommand]);
+
+  const flightWorkOrders = flightWorkOrdersData?.data || [];
+  const availableWorkOrders = availableWorkOrdersData?.data || [];
+  const hasAssignedWorkOrders = flightWorkOrders.length > 0;
 
   const formatDateTime = useCallback((dateTimeString: string) => {
     try {
@@ -96,10 +103,6 @@ const FlightDetail: React.FC = () => {
   }, []);
 
   // Event handlers
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
-  };
-
   const handleGoBack = () => {
     navigate('/flights');
   };
@@ -123,32 +126,32 @@ const FlightDetail: React.FC = () => {
   }, [flight, workOrderCommand, workOrderNotes, submitWorkOrderMutation, refetch]);
 
   const handleAssignWorkOrder = useCallback(async () => {
-    if (!flight) return;
+    if (!flight || !selectedWorkOrderId) return;
+
+    const selectedWorkOrder = availableWorkOrders.find(wo => wo.id === selectedWorkOrderId);
+    if (!selectedWorkOrder) return;
 
     try {
-          await assignWorkOrderMutation.mutateAsync({
-            flightId: String(flight.id),
-        workOrderData: workOrderForm
+      await assignWorkOrderMutation.mutateAsync({
+        flightId: String(flight.id),
+        workOrderData: {
+          aircraftRegistration: selectedWorkOrder.aircraftRegistration,
+          taskDescription: selectedWorkOrder.taskDescription,
+          priority: selectedWorkOrder.priority,
+          assignedTechnician: selectedWorkOrder.assignedTechnician,
+          scheduledDate: selectedWorkOrder.scheduledDate,
+          notes: selectedWorkOrder.notes || ''
+        }
       });
       
-      setWorkOrderForm({
-        aircraftRegistration: '',
-        taskDescription: '',
-        priority: 1,
-        assignedTechnician: '',
-        scheduledDate: '',
-        notes: ''
-      });
+      setSelectedWorkOrderId(null);
       setAssignWorkOrderDialogOpen(false);
       refetch();
+      refetchFlightWorkOrders();
     } catch (error: any) {
       // Error is handled by the mutation
     }
-  }, [flight, workOrderForm, assignWorkOrderMutation, refetch]);
-
-  const handleFormChange = (field: string, value: any) => {
-    setWorkOrderForm(prev => ({ ...prev, [field]: value }));
-  };
+  }, [flight, selectedWorkOrderId, availableWorkOrders, assignWorkOrderMutation, refetch, refetchFlightWorkOrders]);
 
   if (isLoading) {
     return (
@@ -286,124 +289,196 @@ const FlightDetail: React.FC = () => {
           )}
       </Paper>
 
-      {/* Actions Section */}
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" component="h3" gutterBottom>
-          Actions
-        </Typography>
-        <Divider sx={{ mb: 2 }} />
-        
-        <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
-          <Tab label="Create Work Order Command" />
-          <Tab label="Assign Work Order" />
-        </Tabs>
-
-        {activeTab === 0 && (
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Create Work Order Command
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Create and submit work order commands for this flight.
-            </Typography>
-            
-            <TextField
-              fullWidth
-              multiline
-              rows={1}
-              label="Work Order Command"
-              placeholder="CHK15|BAG25|CLEAN10|PBB90"
-              value={workOrderCommand}
-              onChange={(e) => setWorkOrderCommand(e.target.value)}
-              margin="normal"
-              helperText="Enter commands separated by | (e.g., CHK15|BAG25|CLEAN10|PBB90)"
-              sx={{ mb: 2 }}
-            />
-            
-            {/* Parse Preview */}
-            {parsedWorkOrder && (
-              <Card variant="outlined" sx={{ mb: 2 }}>
-                <CardContent>
-                  <Typography variant="body2" gutterBottom>
-                    Command Preview
-                  </Typography>
-                  <Box display="flex" flexWrap="wrap" gap={1}>
-                    {parsedWorkOrder.commands.map((cmd, index) => (
-                      <Chip
-                        key={index}
-                        label={cmd.description}
-                        color={cmd.isValid ? 'success' : 'error'}
-                        variant={cmd.isValid ? 'filled' : 'outlined'}
-                        size="small"
-                      />
-                    ))}
-                  </Box>
-                  {!parsedWorkOrder.isValid && (
-                    <Alert severity="error" sx={{ mt: 2 }}>
-                      {parsedWorkOrder.errors.join(', ')}
-                    </Alert>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            <TextField
-              fullWidth
-              multiline
-              rows={2}
-              label="Notes (Optional)"
-              placeholder="Additional notes or instructions..."
-              value={workOrderNotes}
-              onChange={(e) => setWorkOrderNotes(e.target.value)}
-              margin="normal"
-              helperText="Optional notes for the work order command"
-              sx={{ mb: 3 }}
-            />
-
-            {/* Command Help */}
-            <Box mb={2}>
-              <Typography variant="subtitle2" gutterBottom>
-                Command Types:
-              </Typography>
-              {Object.entries(WorkOrderParser.getCommandHelp()).map(([key, help]) => (
-                <Typography key={key} variant="body2" color="text.secondary" gutterBottom>
-                  <strong>{key}:</strong> {help}
-                </Typography>
-              ))}
-            </Box>
-
-            <Button
-              variant="contained"
-              onClick={handleSubmitWorkOrder}
-              disabled={
-                !workOrderCommand.trim() || 
-                !parsedWorkOrder?.isValid ||
-                submitWorkOrderMutation.isPending
-              }
-              startIcon={submitWorkOrderMutation.isPending ? <CircularProgress size={16} /> : <SendIcon />}
-            >
-              Submit Work Order Command
-            </Button>
-          </Box>
-        )}
-
-        {activeTab === 1 && (
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Assign Work Order
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Create a new work order and assign it to this flight.
-            </Typography>
-            
+      {/* Assigned Work Orders Section */}
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h6" component="h3">
+            Assigned Work Orders
+          </Typography>
+          {!hasAssignedWorkOrders && (
             <Button
               variant="contained"
               onClick={() => setAssignWorkOrderDialogOpen(true)}
+              disabled={availableWorkOrders.length === 0}
             >
-              Create New Work Order Assignment
+              Assign Work Order
             </Button>
+          )}
+        </Box>
+        <Divider sx={{ mb: 2 }} />
+        
+        {flightWorkOrdersLoading ? (
+          <Box display="flex" justifyContent="center" py={4}>
+            <CircularProgress />
+          </Box>
+        ) : hasAssignedWorkOrders ? (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Work Order Number</TableCell>
+                  <TableCell>Task Description</TableCell>
+                  <TableCell>Technician</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Priority</TableCell>
+                  <TableCell>Scheduled Date</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {flightWorkOrders.map((workOrder) => (
+                  <TableRow key={workOrder.id}>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={600}>
+                        {workOrder.workOrderNumber}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {workOrder.taskDescription}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {workOrder.assignedTechnician}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={WorkOrderStatusMap[workOrder.status]}
+                        color={workOrder.status === 2 ? 'success' : workOrder.status === 1 ? 'warning' : 'default'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={WorkOrderPriorityMap[workOrder.priority]}
+                        color={workOrder.priority >= 2 ? 'error' : workOrder.priority === 1 ? 'warning' : 'default'}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {formatDateTime(workOrder.scheduledDate)}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <Box textAlign="center" py={6}>
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No Work Orders Assigned
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              This flight doesn't have any work orders assigned yet.
+            </Typography>
+            {availableWorkOrders.length > 0 ? (
+              <Button
+                variant="contained"
+                onClick={() => setAssignWorkOrderDialogOpen(true)}
+              >
+                Assign Work Order
+              </Button>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                No work orders available for assignment. Create work orders in the Work Orders Management page first.
+              </Typography>
+            )}
           </Box>
         )}
+      </Paper>
+
+      {/* Actions Section */}
+      <Paper sx={{ p: 3 }}>
+        <Typography variant="h6" component="h3" gutterBottom>
+          Work Order Commands
+        </Typography>
+        <Divider sx={{ mb: 2 }} />
+        
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Create and submit work order commands for this flight.
+        </Typography>
+        
+        <TextField
+          fullWidth
+          multiline
+          rows={1}
+          label="Work Order Command"
+          placeholder="CHK15|BAG25|CLEAN10|PBB90"
+          value={workOrderCommand}
+          onChange={(e) => setWorkOrderCommand(e.target.value)}
+          margin="normal"
+          helperText="Enter commands separated by | (e.g., CHK15|BAG25|CLEAN10|PBB90)"
+          sx={{ mb: 2 }}
+        />
+        
+        {/* Parse Preview */}
+        {parsedWorkOrder && (
+          <Card variant="outlined" sx={{ mb: 2 }}>
+            <CardContent>
+              <Typography variant="body2" gutterBottom>
+                Command Preview
+              </Typography>
+              <Box display="flex" flexWrap="wrap" gap={1}>
+                {parsedWorkOrder.commands.map((cmd, index) => (
+                  <Chip
+                    key={index}
+                    label={cmd.description}
+                    color={cmd.isValid ? 'success' : 'error'}
+                    variant={cmd.isValid ? 'filled' : 'outlined'}
+                    size="small"
+                  />
+                ))}
+              </Box>
+              {!parsedWorkOrder.isValid && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {parsedWorkOrder.errors.join(', ')}
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <TextField
+          fullWidth
+          multiline
+          rows={2}
+          label="Notes (Optional)"
+          placeholder="Additional notes or instructions..."
+          value={workOrderNotes}
+          onChange={(e) => setWorkOrderNotes(e.target.value)}
+          margin="normal"
+          helperText="Optional notes for the work order command"
+          sx={{ mb: 3 }}
+        />
+
+        {/* Command Help */}
+        <Box mb={2}>
+          <Typography variant="subtitle2" gutterBottom>
+            Command Types:
+          </Typography>
+          {Object.entries(WorkOrderParser.getCommandHelp()).map(([key, help]) => (
+            <Typography key={key} variant="body2" color="text.secondary" gutterBottom>
+              <strong>{key}:</strong> {help}
+            </Typography>
+          ))}
+        </Box>
+
+        <Button
+          variant="contained"
+          onClick={handleSubmitWorkOrder}
+          disabled={
+            !workOrderCommand.trim() || 
+            !parsedWorkOrder?.isValid ||
+            submitWorkOrderMutation.isPending
+          }
+          startIcon={submitWorkOrderMutation.isPending ? <CircularProgress size={16} /> : <SendIcon />}
+        >
+          Submit Work Order Command
+        </Button>
       </Paper>
 
       {/* Assign Work Order Dialog */}
@@ -416,68 +491,37 @@ const FlightDetail: React.FC = () => {
         <DialogTitle>Assign Work Order to Flight {flight?.flightNumber}</DialogTitle>
         <DialogContent>
           <Box display="flex" flexDirection="column" gap={2} sx={{ pt: 1 }}>
-            <TextField
-              fullWidth
-              label="Aircraft Registration"
-              placeholder="e.g., N123AB"
-              value={workOrderForm.aircraftRegistration}
-              onChange={(e) => handleFormChange('aircraftRegistration', e.target.value)}
-              required
-            />
-            
-            <TextField
-              fullWidth
-              label="Task Description"
-              placeholder="Describe the maintenance task..."
-              value={workOrderForm.taskDescription}
-              onChange={(e) => handleFormChange('taskDescription', e.target.value)}
-              multiline
-              rows={2}
-              required
-            />
-            
-            <FormControl fullWidth required>
-              <InputLabel>Priority</InputLabel>
-              <Select
-                value={workOrderForm.priority}
-                onChange={(e) => handleFormChange('priority', e.target.value as WorkOrderPriority)}
-                label="Priority"
-              >
-                <MenuItem value={0}>Low</MenuItem>
-                <MenuItem value={1}>Medium</MenuItem>
-                <MenuItem value={2}>High</MenuItem>
-                <MenuItem value={3}>Critical</MenuItem>
-              </Select>
-            </FormControl>
-            
-            <TextField
-              fullWidth
-              label="Assigned Technician"
-              placeholder="Technician name"
-              value={workOrderForm.assignedTechnician}
-              onChange={(e) => handleFormChange('assignedTechnician', e.target.value)}
-              required
-            />
-            
-            <TextField
-              fullWidth
-              label="Scheduled Date"
-              type="datetime-local"
-              value={workOrderForm.scheduledDate}
-              onChange={(e) => handleFormChange('scheduledDate', e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              required
-            />
-            
-            <TextField
-              fullWidth
-              label="Notes (Optional)"
-              placeholder="Additional notes..."
-              value={workOrderForm.notes}
-              onChange={(e) => handleFormChange('notes', e.target.value)}
-              multiline
-              rows={2}
-            />
+            {availableWorkOrdersLoading ? (
+              <Box display="flex" justifyContent="center" py={4}>
+                <CircularProgress />
+              </Box>
+            ) : availableWorkOrders.length > 0 ? (
+              <FormControl fullWidth>
+                <InputLabel>Select Work Order</InputLabel>
+                <Select
+                  value={selectedWorkOrderId || ''}
+                  onChange={(e) => setSelectedWorkOrderId(Number(e.target.value))}
+                  label="Select Work Order"
+                >
+                  {availableWorkOrders.map((workOrder) => (
+                    <MenuItem key={workOrder.id} value={workOrder.id}>
+                      <Box>
+                        <Typography variant="body1" fontWeight={600}>
+                          {workOrder.workOrderNumber} - {workOrder.taskDescription}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Technician: {workOrder.assignedTechnician} | Status: {WorkOrderStatusMap[workOrder.status]} | Priority: {WorkOrderPriorityMap[workOrder.priority]}
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            ) : (
+              <Alert severity="info">
+                No work orders available for assignment. Please create work orders in the Work Orders Management page first.
+              </Alert>
+            )}
           </Box>
         </DialogContent>
         <DialogActions>
@@ -488,10 +532,7 @@ const FlightDetail: React.FC = () => {
             variant="contained"
             onClick={handleAssignWorkOrder}
             disabled={
-              !workOrderForm.aircraftRegistration.trim() ||
-              !workOrderForm.taskDescription.trim() ||
-              !workOrderForm.assignedTechnician.trim() ||
-              !workOrderForm.scheduledDate ||
+              !selectedWorkOrderId ||
               assignWorkOrderMutation.isPending
             }
           >
